@@ -43,9 +43,7 @@ func NewOutput(path string, verbose bool) (o *Output, err error) {
 func (o *Output) Write(resp *http.Response, cfg *config.Config) {
 	var err error
 
-	if cfg.Head {
-		_, err = o.receivedDataFile.WriteString(responseToString(resp))
-	} else if cfg.OutputJSON {
+	if cfg.OutputJSON {
 		var b []byte
 		b, err = responseToJSON(resp)
 		if err != nil {
@@ -53,6 +51,8 @@ func (o *Output) Write(resp *http.Response, cfg *config.Config) {
 		}
 
 		_, err = o.receivedDataFile.Write(b)
+	} else if cfg.Head {
+		_, err = o.receivedDataFile.WriteString(responseToString(resp))
 	} else {
 		_, err = io.Copy(o.receivedDataFile, resp.Body)
 	}
