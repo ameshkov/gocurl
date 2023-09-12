@@ -29,7 +29,7 @@ func NewOutput(path string, verbose bool) (o *Output, err error) {
 	o = &Output{
 		verbose:          verbose,
 		logFile:          os.Stderr,
-		receivedDataFile: os.Stderr,
+		receivedDataFile: os.Stdout,
 	}
 
 	if path != "" {
