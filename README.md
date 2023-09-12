@@ -17,6 +17,21 @@ to rewrite the necessary parts of curl.
 Also, I'd like to be able to extend it with what fits my specific needs.
 Unfortunately, curl is a bit too huge for that now.
 
+## How to install gocurl
+
+## How to install
+
+* Using homebrew:
+    ```shell
+    brew install ameshkov/tap/gocurl
+    ```
+* From source:
+    ```shell
+    go install github.com/ameshkov/gocurl@latest
+    ```
+* You can get a binary from
+  the [releases page](https://github.com/ameshkov/gocurl/releases).
+
 ## How to use gocurl
 
 Use it the same way you use original curl.
