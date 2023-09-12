@@ -1,0 +1,91 @@
+// Package cmd is the entry point of the tool.
+package cmd
+
+import (
+	"crypto/tls"
+	"errors"
+	"fmt"
+	"io"
+	"os"
+
+	"github.com/ameshkov/gocurl/internal/client"
+	"github.com/ameshkov/gocurl/internal/config"
+	"github.com/ameshkov/gocurl/internal/version"
+	goFlags "github.com/jessevdk/go-flags"
+)
+
+// Main is the entry point for the command-line tool.
+func Main() {
+	if len(os.Args) == 2 && (os.Args[1] == "--version" || os.Args[1] == "-v") {
+		fmt.Printf("gocurl version: %s\n", version.Version())
+
+		os.Exit(0)
+	}
+
+	cfg, err := config.ParseConfig()
+	var flagErr *goFlags.Error
+	if errors.As(err, &flagErr) && flagErr.Type == goFlags.ErrHelp {
+		// This is a special case when we exit process here as we received
+		// --help.
+		os.Exit(0)
+	}
+
+	if err != nil {
+		_, _ = os.Stderr.WriteString(fmt.Sprintf("Failed to parse args: %v", err))
+
+		os.Exit(1)
+	}
+
+	out, err := NewOutput(cfg.OutputPath, cfg.Verbose)
+	if err != nil {
+		panic(err)
+	}
+
+	out.Debug("Starting gocurl %s with arguments:\n%s", version.Version(), cfg.RawOptions)
+
+	c, err := client.NewClient(cfg)
+	if err != nil {
+		out.Info("Failed to create client: %v", err)
+
+		os.Exit(1)
+	}
+
+	req, err := client.NewRequest(cfg)
+
+	if err != nil {
+		out.Info("Failed to create request: %v", err)
+
+		os.Exit(1)
+	}
+
+	// This is a strange thing, but for the sake of logging WITH the request
+	// body it is easier to create a second request.
+	//
+	// TODO(ameshkov): refactor this.
+	cloneReq, _ := client.NewRequest(cfg)
+	out.Debug("Sending request:\n%s", requestToString(cloneReq))
+
+	resp, err := c.Do(req)
+	if err != nil {
+		out.Info("Failed to make request: %v", err)
+
+		os.Exit(1)
+	}
+
+	if resp.TLS != nil {
+		out.Debug("TLS version: %s", tls.VersionName(resp.TLS.Version))
+		out.Debug("TLS cipher suite: %s", tls.CipherSuiteName(resp.TLS.CipherSuite))
+
+		if resp.TLS.NegotiatedProtocol != "" {
+			out.Debug("TLS negotiated protocol: %s", resp.TLS.NegotiatedProtocol)
+		}
+	}
+
+	out.Debug("Received response:\n%s", responseToString(resp))
+
+	defer func(r io.ReadCloser) {
+		_ = r.Close()
+	}(resp.Body)
+
+	out.Write(resp, cfg)
+}
