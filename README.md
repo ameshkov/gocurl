@@ -3,16 +3,16 @@
 
 # gocurl
 
-Simplified version of [`curl`](https://curl.se/) written in Golang.
+Simplified version of [`curl`](https://curl.se/) written in Go.
 
 1. Supports a limited subset of curl options.
 2. Supports some flags that curl does not (for instance, `json-output`).
 
 ## Why in the world you need another curl?
 
-Curl is certainly awesome, but sometimes I need to have a better control over
-what's happening on the inside and be able to debug it. It seemed easier to me
-to rewrite the necessary parts of curl.
+Curl is certainly awesome, but sometimes I need to have better control over
+what's happening on the inside and to be able to debug it. It seemed easier to
+me to implement the necessary parts of curl in Go.
 
 Also, I'd like to be able to extend it with what fits my specific needs.
 Unfortunately, curl is a bit too huge for that now.
