@@ -96,6 +96,7 @@ func ParseConfig() (cfg *Config, err error) {
 		ForceHTTP11: opts.HTTPv11,
 		ForceHTTP2:  opts.HTTPv2,
 		ForceHTTP3:  opts.HTTPv3,
+		RawOptions:  opts,
 	}
 
 	cfg.RequestURL, err = url.Parse(opts.URL)
