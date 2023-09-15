@@ -11,6 +11,10 @@ adheres to [Semantic Versioning][semver].
 
 ## [Unreleased]
 
+[unreleased]: https://github.com/ameshkov/gocurl/compare/v1.0.5...HEAD
+
+## [1.0.5] - 2023-09-15
+
 ### Added
 
 * Added the changelog.
@@ -25,7 +29,11 @@ adheres to [Semantic Versioning][semver].
   change gocurl could only redirect the proxy connection, but not the one that
   goes through proxy. This behavior is now fixed.
 
-[unreleased]: https://github.com/ameshkov/gocurl/compare/v1.0.4...HEAD
+[See changes][1.0.5changes].
+
+[1.0.5changes]: https://github.com/ameshkov/gocurl/compare/v1.0.4...v1.0.5
+
+[1.0.5]: https://github.com/ameshkov/gocurl/releases/tag/v1.0.5
 
 ## [1.0.4] - 2023-09-12
 
