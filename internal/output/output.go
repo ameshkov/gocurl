@@ -1,3 +1,4 @@
+// Package output is responsible for writing logs and received response data.
 package output
 
 import (
