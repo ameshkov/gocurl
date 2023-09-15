@@ -9,14 +9,14 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"net/url"
 	"time"
-
-	"golang.org/x/net/http2"
-
-	"github.com/quic-go/quic-go/http3"
 
 	"github.com/ameshkov/gocurl/internal/config"
 	"github.com/ameshkov/gocurl/internal/version"
+	"github.com/quic-go/quic-go/http3"
+	"golang.org/x/net/http2"
+	"golang.org/x/net/proxy"
 )
 
 type dialContextFunc func(ctx context.Context, network, addr string) (net.Conn, error)
@@ -30,7 +30,10 @@ func NewClient(cfg *config.Config) (client *http.Client, err error) {
 	}
 
 	if cfg.ProxyURL != nil {
-		transport.Proxy = http.ProxyURL(cfg.ProxyURL)
+		transport.DialContext, err = createProxyDialContext(cfg.ProxyURL, transport.DialContext)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if len(cfg.ConnectTo) > 0 {
@@ -214,24 +217,66 @@ func (c *splitTLSConn) Write(b []byte) (n int, err error) {
 	c.writeCnt++
 
 	if c.isClientHello(b) {
-		firstChunk := b[:c.firstChunkSize]
-		lastChunk := b[c.firstChunkSize:]
-		n, err = c.baseConn.Write(firstChunk)
-		if err != nil {
-			return n, err
+		chunks := [][]byte{
+			b[:c.firstChunkSize],
+			b[c.firstChunkSize:],
 		}
 
-		if c.delay > 0 {
-			time.Sleep(time.Duration(c.delay) * time.Millisecond)
+		for i, chunk := range chunks {
+			var l int
+			l, err = c.baseConn.Write(chunk)
+			if err != nil {
+				return n, err
+			}
+
+			n = n + l
+
+			if c.delay > 0 && i < len(chunks)-1 {
+				time.Sleep(time.Duration(c.delay) * time.Millisecond)
+			}
 		}
 
-		var m int
-		m, err = c.baseConn.Write(lastChunk)
-
-		return m + n, err
+		return n, err
 	}
 
 	return c.baseConn.Write(b)
+}
+
+// forwardDialer implements proxy.Dialer and is used for creating proxy dialer
+// in the createProxyDialContext.
+type forwardDialer struct {
+	baseDial dialContextFunc
+}
+
+// Dial implements proxy.Dialer for *forwardDialer.
+func (f *forwardDialer) Dial(network, addr string) (c net.Conn, err error) {
+	return f.baseDial(context.Background(), network, addr)
+}
+
+// type check
+var _ proxy.Dialer = (*forwardDialer)(nil)
+
+// createProxyDialContext creates a dialContextFunc that connects to the target
+// remote endpoint via proxy.
+func createProxyDialContext(proxyURL *url.URL, baseDial dialContextFunc) (f dialContextFunc, err error) {
+	if baseDial == nil {
+		d := &net.Dialer{}
+		baseDial = d.DialContext
+	}
+
+	proxyDialer, err := proxy.FromURL(proxyURL, &forwardDialer{baseDial: baseDial})
+	if err != nil {
+		return nil, err
+	}
+
+	return func(ctx context.Context, network, addr string) (conn net.Conn, err error) {
+		conn, err = proxyDialer.Dial(network, addr)
+		if err != nil {
+			return nil, err
+		}
+
+		return conn, err
+	}, nil
 }
 
 // createTLSSplitDialContext creates a dialContextFunc that splits the TLS
@@ -242,8 +287,8 @@ func createTLSSplitDialContext(firstChunkSize int, delay int, baseDial dialConte
 		baseDial = d.DialContext
 	}
 
-	return func(ctx context.Context, network, addr string) (net.Conn, error) {
-		conn, err := baseDial(ctx, network, addr)
+	return func(ctx context.Context, network, addr string) (conn net.Conn, err error) {
+		conn, err = baseDial(ctx, network, addr)
 		if err != nil {
 			return nil, err
 		}

@@ -87,7 +87,7 @@ func (o *Output) Debug(format string, args ...any) {
 
 // requestToString converts HTTP request to a string.
 func requestToString(req *http.Request) (str string) {
-	cloneReq := req.Clone(context.TODO())
+	cloneReq := req.Clone(context.Background())
 
 	b := &bytes.Buffer{}
 	_ = cloneReq.Write(b)
