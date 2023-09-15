@@ -13,6 +13,7 @@ import (
 	"time"
 
 	"github.com/ameshkov/gocurl/internal/config"
+	"github.com/ameshkov/gocurl/internal/output"
 	"github.com/ameshkov/gocurl/internal/version"
 	"github.com/quic-go/quic-go/http3"
 	"golang.org/x/net/http2"
@@ -22,22 +23,24 @@ import (
 type dialContextFunc func(ctx context.Context, network, addr string) (net.Conn, error)
 
 // NewClient creates a new *http.Client based on *cmd.Options.
-func NewClient(cfg *config.Config) (client *http.Client, err error) {
+func NewClient(cfg *config.Config, out *output.Output) (client *http.Client, err error) {
+	b := &baseDialer{out: out}
 	transport := &http.Transport{
 		TLSClientConfig:    createTLSConfig(cfg),
 		DisableCompression: true,
 		DisableKeepAlives:  true,
+		DialContext:        b.DialContext,
 	}
 
 	if cfg.ProxyURL != nil {
-		transport.DialContext, err = createProxyDialContext(cfg.ProxyURL, transport.DialContext)
+		transport.DialContext, err = createProxyDialContext(cfg.ProxyURL, transport.DialContext, out)
 		if err != nil {
 			return nil, err
 		}
 	}
 
 	if len(cfg.ConnectTo) > 0 {
-		transport.DialContext, err = createConnectToDialContext(cfg.ConnectTo, transport.DialContext)
+		transport.DialContext, err = createConnectToDialContext(cfg.ConnectTo, transport.DialContext, out)
 		if err != nil {
 			return nil, err
 		}
@@ -48,6 +51,7 @@ func NewClient(cfg *config.Config) (client *http.Client, err error) {
 			cfg.TLSSplitChunkSize,
 			cfg.TLSSplitDelay,
 			transport.DialContext,
+			out,
 		)
 	}
 
@@ -174,6 +178,9 @@ type splitTLSConn struct {
 	// delay is time to wait in milliseconds before sending the second part.
 	delay int
 
+	// out is required for debug-level logging.
+	out *output.Output
+
 	// writeCnt is the number of Write calls.
 	writeCnt int
 
@@ -217,6 +224,8 @@ func (c *splitTLSConn) Write(b []byte) (n int, err error) {
 	c.writeCnt++
 
 	if c.isClientHello(b) {
+		c.out.Debug("Found ClientHello, splitting it into parts")
+
 		chunks := [][]byte{
 			b[:c.firstChunkSize],
 			b[c.firstChunkSize:],
@@ -242,6 +251,24 @@ func (c *splitTLSConn) Write(b []byte) (n int, err error) {
 	return c.baseConn.Write(b)
 }
 
+// baseDialer is a structure that implements proxy.ContextDialer interface and
+// is basically a wrapper over net.Dialer that is required to add logging.
+// It is used as a default dialer in http transport.
+type baseDialer struct {
+	out    *output.Output
+	dialer net.Dialer
+}
+
+// DialContext implements proxy.ContextDialer for *baseDialer.
+func (d *baseDialer) DialContext(ctx context.Context, network, addr string) (c net.Conn, err error) {
+	d.out.Debug("Connecting to %s", addr)
+
+	return d.dialer.DialContext(ctx, network, addr)
+}
+
+// type check
+var _ proxy.ContextDialer = (*baseDialer)(nil)
+
 // forwardDialer implements proxy.Dialer and is used for creating proxy dialer
 // in the createProxyDialContext.
 type forwardDialer struct {
@@ -258,18 +285,21 @@ var _ proxy.Dialer = (*forwardDialer)(nil)
 
 // createProxyDialContext creates a dialContextFunc that connects to the target
 // remote endpoint via proxy.
-func createProxyDialContext(proxyURL *url.URL, baseDial dialContextFunc) (f dialContextFunc, err error) {
-	if baseDial == nil {
-		d := &net.Dialer{}
-		baseDial = d.DialContext
-	}
-
+func createProxyDialContext(
+	proxyURL *url.URL,
+	baseDial dialContextFunc,
+	out *output.Output,
+) (f dialContextFunc, err error) {
 	proxyDialer, err := proxy.FromURL(proxyURL, &forwardDialer{baseDial: baseDial})
 	if err != nil {
 		return nil, err
 	}
 
+	out.Debug("Using proxy %s", proxyURL)
+
 	return func(ctx context.Context, network, addr string) (conn net.Conn, err error) {
+		out.Debug("Connecting through proxy to %s", addr)
+
 		conn, err = proxyDialer.Dial(network, addr)
 		if err != nil {
 			return nil, err
@@ -281,11 +311,13 @@ func createProxyDialContext(proxyURL *url.URL, baseDial dialContextFunc) (f dial
 
 // createTLSSplitDialContext creates a dialContextFunc that splits the TLS
 // ClientHello in two parts.
-func createTLSSplitDialContext(firstChunkSize int, delay int, baseDial dialContextFunc) (f dialContextFunc) {
-	if baseDial == nil {
-		d := &net.Dialer{}
-		baseDial = d.DialContext
-	}
+func createTLSSplitDialContext(
+	firstChunkSize int,
+	delay int,
+	baseDial dialContextFunc,
+	out *output.Output,
+) (f dialContextFunc) {
+	out.Debug("Splitting TLS ClientHello is enabled. First chunk size is %d, delay is %d", firstChunkSize, delay)
 
 	return func(ctx context.Context, network, addr string) (conn net.Conn, err error) {
 		conn, err = baseDial(ctx, network, addr)
@@ -298,20 +330,23 @@ func createTLSSplitDialContext(firstChunkSize int, delay int, baseDial dialConte
 			baseConn:       conn,
 			firstChunkSize: firstChunkSize,
 			delay:          delay,
+			out:            out,
 		}, nil
 	}
 }
 
 // createConnectToDialContext creates a dialContextFunc that overrides the
 // remote endpoint.
-func createConnectToDialContext(connectTo map[string]string, baseDial dialContextFunc) (f dialContextFunc, err error) {
-	if baseDial == nil {
-		d := &net.Dialer{}
-		baseDial = d.DialContext
-	}
+func createConnectToDialContext(
+	connectTo map[string]string,
+	baseDial dialContextFunc,
+	out *output.Output,
+) (f dialContextFunc, err error) {
+	out.Debug("Some connections will be redirected due to --connect-to")
 
 	return func(ctx context.Context, network, addr string) (net.Conn, error) {
 		if v, ok := connectTo[addr]; ok {
+			out.Debug("Redirecting %s to %s", addr, v)
 			addr = v
 		}
 

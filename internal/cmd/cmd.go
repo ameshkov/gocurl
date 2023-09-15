@@ -10,6 +10,7 @@ import (
 
 	"github.com/ameshkov/gocurl/internal/client"
 	"github.com/ameshkov/gocurl/internal/config"
+	"github.com/ameshkov/gocurl/internal/output"
 	"github.com/ameshkov/gocurl/internal/version"
 	goFlags "github.com/jessevdk/go-flags"
 )
@@ -36,14 +37,14 @@ func Main() {
 		os.Exit(1)
 	}
 
-	out, err := NewOutput(cfg.OutputPath, cfg.Verbose)
+	out, err := output.NewOutput(cfg.OutputPath, cfg.Verbose)
 	if err != nil {
 		panic(err)
 	}
 
 	out.Debug("Starting gocurl %s with arguments:\n%s", version.Version(), cfg.RawOptions)
 
-	c, err := client.NewClient(cfg)
+	c, err := client.NewClient(cfg, out)
 	if err != nil {
 		out.Info("Failed to create client: %v", err)
 
@@ -63,7 +64,7 @@ func Main() {
 	//
 	// TODO(ameshkov): refactor this.
 	cloneReq, _ := client.NewRequest(cfg)
-	out.Debug("Sending request:\n%s", requestToString(cloneReq))
+	out.DebugRequest(cloneReq)
 
 	resp, err := c.Do(req)
 	if err != nil {
@@ -81,7 +82,7 @@ func Main() {
 		}
 	}
 
-	out.Debug("Received response:\n%s", responseToString(resp))
+	out.DebugResponse(resp)
 
 	defer func(r io.ReadCloser) {
 		_ = r.Close()

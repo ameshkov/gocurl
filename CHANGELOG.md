@@ -15,6 +15,10 @@ adheres to [Semantic Versioning][semver].
 
 * Added the changelog.
 
+### Changed
+
+* Added more debug logging to all request stages.
+
 ### Fixed
 
 * Fixed the way `--connect-to` works when a proxy is specified. Before this

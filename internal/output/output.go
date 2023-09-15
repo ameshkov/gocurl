@@ -1,4 +1,4 @@
-package cmd
+package output
 
 import (
 	"bytes"
@@ -83,6 +83,16 @@ func (o *Output) Debug(format string, args ...any) {
 	if err != nil {
 		panic(err)
 	}
+}
+
+// DebugRequest writes information about the HTTP request to the output.
+func (o *Output) DebugRequest(req *http.Request) {
+	o.Debug("Request:\n%s", requestToString(req))
+}
+
+// DebugResponse writes information about the HTTP response to the output.
+func (o *Output) DebugResponse(resp *http.Response) {
+	o.Debug("Response:\n%s", responseToString(resp))
 }
 
 // requestToString converts HTTP request to a string.
