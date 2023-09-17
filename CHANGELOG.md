@@ -17,9 +17,11 @@ adheres to [Semantic Versioning][semver].
 
 ### Added
 
-* `--connect-to` and `--proxy` now also support HTTP/3. (#1)
+* `--connect-to` and `--proxy` now also support HTTP/3. ([#1][#1])
 
 [See changes][1.0.6changes].
+
+[#1]: https://github.com/ameshkov/gocurl/issues/1
 
 [1.0.6changes]: https://github.com/ameshkov/gocurl/compare/v1.0.5...v1.0.6
 
