@@ -8,6 +8,7 @@ import (
 
 	"github.com/ameshkov/gocurl/internal/config"
 	"github.com/ameshkov/gocurl/internal/output"
+	"github.com/ameshkov/gocurl/internal/resolve"
 	"github.com/quic-go/quic-go"
 	"golang.org/x/net/proxy"
 )
@@ -18,25 +19,54 @@ type dialFunc func(network, addr string) (net.Conn, error)
 // regular dial depending on the configuration. It can dial over a proxy,
 // apply --connect-to logic or split TLS client hello when required.
 type dialer struct {
-	out  *output.Output
-	dial dialFunc
+	cfg       *config.Config
+	out       *output.Output
+	tlsConfig *tls.Config
+	resolver  *resolve.Resolver
+	dial      dialFunc
 }
 
 // newDialer creates a new instance of the dialer.
 func newDialer(cfg *config.Config, out *output.Output) (d *dialer, err error) {
-	dial, err := createDialFunc(cfg, out)
+	resolver, err := resolve.NewResolver(cfg, out)
+	if err != nil {
+		return nil, err
+	}
+
+	dial, err := createDialFunc(resolver, cfg, out)
 	if err != nil {
 		return nil, err
 	}
 
 	return &dialer{
-		out:  out,
-		dial: dial,
+		cfg:       cfg,
+		out:       out,
+		tlsConfig: createTLSConfig(cfg),
+		resolver:  resolver,
+		dial:      dial,
 	}, nil
 }
 
 // type check
 var _ proxy.ContextDialer = (*dialer)(nil)
+
+// DialTLSContext establishes a new TLS connection to the specified address.
+func (d *dialer) DialTLSContext(_ context.Context, network, addr string) (c net.Conn, err error) {
+	d.out.Debug("Connecting to %s over TLS", addr)
+
+	conn, err := d.dial(network, addr)
+	if err != nil {
+		return nil, err
+	}
+
+	tlsConn := tls.Client(conn, d.tlsConfig)
+	err = tlsConn.Handshake()
+	if err != nil {
+		return nil, err
+	}
+
+	return tlsConn, nil
+}
 
 // DialContext implements proxy.ContextDialer for *dialer.
 func (d *dialer) DialContext(_ context.Context, network, addr string) (c net.Conn, err error) {
@@ -50,7 +80,7 @@ func (d *dialer) DialContext(_ context.Context, network, addr string) (c net.Con
 func (d *dialer) DialQUIC(
 	ctx context.Context,
 	addr string,
-	tlsCfg *tls.Config,
+	_ *tls.Config,
 	cfg *quic.Config,
 ) (quic.EarlyConnection, error) {
 	conn, err := d.dial("udp", addr)
@@ -58,7 +88,7 @@ func (d *dialer) DialQUIC(
 		return nil, err
 	}
 
-	udpConn, ok := conn.(net.PacketConn)
+	uConn, ok := conn.(net.PacketConn)
 	if !ok {
 		return nil, fmt.Errorf("dialer returned not a PacketConn for %s", addr)
 	}
@@ -68,7 +98,7 @@ func (d *dialer) DialQUIC(
 		return nil, err
 	}
 
-	return quic.DialEarly(ctx, udpConn, udpAddr, tlsCfg, cfg)
+	return quic.DialEarly(ctx, uConn, udpAddr, d.tlsConfig, cfg)
 }
 
 // udpConn is a wrapper over a pre-connected net.PacketConn that overrides
@@ -94,7 +124,8 @@ var _ net.PacketConn = (*udpConn)(nil)
 
 // directDialer provides the base dialFunc implementation.
 type directDialer struct {
-	out *output.Output
+	out      *output.Output
+	resolver *resolve.Resolver
 }
 
 // type check
@@ -104,7 +135,19 @@ var _ proxy.Dialer = (*directDialer)(nil)
 func (d *directDialer) Dial(network, addr string) (conn net.Conn, err error) {
 	d.out.Debug("Connecting to %s://%s", network, addr)
 
-	conn, err = net.Dial(network, addr)
+	host, port, err := net.SplitHostPort(addr)
+	if err != nil {
+		return nil, err
+	}
+
+	ipAddrs, err := d.resolver.LookupHost(host)
+	if err != nil {
+		return nil, err
+	}
+
+	ipAddr := ipAddrs[0]
+
+	conn, err = net.Dial(network, net.JoinHostPort(ipAddr.String(), port))
 	if err != nil {
 		return nil, err
 	}
@@ -118,8 +161,15 @@ func (d *directDialer) Dial(network, addr string) (conn net.Conn, err error) {
 
 // createDialFunc creates dialFunc that implements all the logic configured by
 // cfg.
-func createDialFunc(cfg *config.Config, out *output.Output) (dial dialFunc, err error) {
-	d := &directDialer{out: out}
+func createDialFunc(
+	resolver *resolve.Resolver,
+	cfg *config.Config,
+	out *output.Output,
+) (dial dialFunc, err error) {
+	d := &directDialer{
+		out:      out,
+		resolver: resolver,
+	}
 	dial = d.Dial
 
 	if cfg.ProxyURL != nil {
@@ -141,4 +191,31 @@ func createDialFunc(cfg *config.Config, out *output.Output) (dial dialFunc, err 
 	}
 
 	return dial, nil
+}
+
+// createTLSConfig creates TLS config based on the configuration.
+func createTLSConfig(cfg *config.Config) (tlsConfig *tls.Config) {
+	tlsConfig = &tls.Config{
+		ServerName: cfg.RequestURL.Hostname(),
+		MinVersion: cfg.TLSMinVersion,
+		MaxVersion: cfg.TLSMaxVersion,
+	}
+
+	if cfg.Insecure {
+		tlsConfig.InsecureSkipVerify = true
+	}
+
+	if cfg.ForceHTTP11 {
+		tlsConfig.NextProtos = []string{"http/1.1"}
+	}
+
+	if cfg.ForceHTTP2 {
+		tlsConfig.NextProtos = []string{"h2"}
+	}
+
+	if cfg.ForceHTTP3 {
+		tlsConfig.NextProtos = []string{"h3"}
+	}
+
+	return tlsConfig
 }

@@ -3,13 +3,14 @@ module github.com/ameshkov/gocurl
 go 1.21.1
 
 require (
+	github.com/AdguardTeam/golibs v0.16.2-0.20230920172933-f1e145585567
 	github.com/ameshkov/cfcrypto v0.0.0-20230920085957-6533e339cf20
 	github.com/jessevdk/go-flags v1.5.0
 	github.com/miekg/dns v1.1.51
 	github.com/quic-go/quic-go v0.38.1
-	github.com/stretchr/testify v1.6.1
+	github.com/stretchr/testify v1.8.4
 	github.com/txthinking/socks5 v0.0.0-20230325130024-4230056ae301
-	golang.org/x/net v0.10.0
+	golang.org/x/net v0.12.0
 )
 
 require (
@@ -26,8 +27,8 @@ require (
 	github.com/quic-go/qtls-go1-20 v0.3.3 // indirect
 	github.com/txthinking/runnergroup v0.0.0-20210608031112-152c7c4432bf // indirect
 	golang.org/x/crypto v0.13.0 // indirect
-	golang.org/x/exp v0.0.0-20221205204356-47842c84f3db // indirect
-	golang.org/x/mod v0.10.0 // indirect
+	golang.org/x/exp v0.0.0-20230807204917-050eac23e9de // indirect
+	golang.org/x/mod v0.11.0 // indirect
 	golang.org/x/sys v0.12.0 // indirect
 	golang.org/x/text v0.13.0 // indirect
 	golang.org/x/tools v0.9.1 // indirect

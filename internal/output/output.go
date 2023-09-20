@@ -87,11 +87,15 @@ func (o *Output) Debug(format string, args ...any) {
 }
 
 // DebugRequest writes information about the HTTP request to the output.
+//
+// TODO(ameshkov): instead of this, log the actual data sent to tls.Conn.
 func (o *Output) DebugRequest(req *http.Request) {
 	o.Debug("Request:\n%s", requestToString(req))
 }
 
 // DebugResponse writes information about the HTTP response to the output.
+//
+// TODO(ameshkov): instead of this, log the actual data received from tls.Conn.
 func (o *Output) DebugResponse(resp *http.Response) {
 	o.Debug("Response:\n%s", responseToString(resp))
 }
