@@ -1,5 +1,5 @@
-github.com/AdguardTeam/golibs v0.16.2-0.20230920172933-f1e145585567 h1:73b52D6xYhutRfolZKl64+VVJlbCex6cl2DY/ObolEc=
-github.com/AdguardTeam/golibs v0.16.2-0.20230920172933-f1e145585567/go.mod h1:DKhCIXHcUYtBhU8ibTLKh1paUL96n5zhQBlx763sj+U=
+github.com/AdguardTeam/golibs v0.16.2 h1:54286tqaGZl3L13EV1PbaMnGqJkFJdaVtqFpDNEKZi8=
+github.com/AdguardTeam/golibs v0.16.2/go.mod h1:DKhCIXHcUYtBhU8ibTLKh1paUL96n5zhQBlx763sj+U=
 github.com/ameshkov/cfcrypto v0.0.0-20230920085957-6533e339cf20 h1:j8x5hMYKQQZ5YqnEjIRGV4+OBKG5GeSHX1HxPyYr0ik=
 github.com/ameshkov/cfcrypto v0.0.0-20230920085957-6533e339cf20/go.mod h1:LpelHZ44fr70aziZcRz/Eja5gO9L3fqtcY/3z4XMRmY=
 github.com/chzyer/logex v1.1.10/go.mod h1:+Ywpsq7O8HXn0nuIou7OrIPyXbp3wmkHB+jjWRnGsAI=

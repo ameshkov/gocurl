@@ -3,7 +3,7 @@ module github.com/ameshkov/gocurl
 go 1.21.1
 
 require (
-	github.com/AdguardTeam/golibs v0.16.2-0.20230920172933-f1e145585567
+	github.com/AdguardTeam/golibs v0.16.2
 	github.com/ameshkov/cfcrypto v0.0.0-20230920085957-6533e339cf20
 	github.com/jessevdk/go-flags v1.5.0
 	github.com/miekg/dns v1.1.51

@@ -37,7 +37,7 @@ func NewResolver(cfg *config.Config, out *output.Output) (r *Resolver, err error
 		return nil, err
 	}
 
-	addrs := sr.Get()
+	addrs := sr.Addrs()
 	if len(addrs) == 0 {
 		return nil, ErrNoResolvers
 	}
