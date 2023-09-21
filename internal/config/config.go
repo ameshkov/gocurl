@@ -5,6 +5,7 @@ import (
 	"crypto/tls"
 	"encoding/base64"
 	"fmt"
+	"net"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -66,6 +67,11 @@ type Config struct {
 	// an encrypted connection.
 	ECHConfigs []ctls.ECHConfig
 
+	// Resolve is a map of host:ips pairs.  It allows specifying custom IP
+	// addresses for a specific host or all hosts (if '*' is used instead of
+	// the host name).
+	Resolve map[string][]net.IP
+
 	// TLSSplitChunkSize is a size of the first chunk of ClientHello that is
 	// sent to the server.
 	TLSSplitChunkSize int
@@ -125,9 +131,16 @@ func ParseConfig() (cfg *Config, err error) {
 	}
 
 	if len(opts.ConnectTo) > 0 {
-		cfg.ConnectTo, err = createConnectTo(opts.ConnectTo)
+		cfg.ConnectTo, err = parseConnectTo(opts.ConnectTo)
 		if err != nil {
 			return nil, fmt.Errorf("invalid connect-to specified %v: %w", opts.ConnectTo, err)
+		}
+	}
+
+	if len(opts.Resolve) > 0 {
+		cfg.Resolve, err = parseResolve(opts.Resolve)
+		if err != nil {
+			return nil, fmt.Errorf("invalid resolve specified %s: %w", opts.Resolve, err)
 		}
 	}
 
@@ -144,30 +157,14 @@ func ParseConfig() (cfg *Config, err error) {
 	}
 
 	if opts.TLSSplitHello != "" {
-		parts := strings.SplitN(opts.TLSSplitHello, ":", 2)
-		if len(parts) != 2 {
-			return nil, fmt.Errorf("invalid tls-split-hello format: %s", opts.TLSSplitHello)
-		}
-
-		cfg.TLSSplitChunkSize, err = strconv.Atoi(parts[0])
-		if err != nil {
-			return nil, fmt.Errorf("invalid tls-split-hello: %w", err)
-		}
-
-		cfg.TLSSplitDelay, err = strconv.Atoi(parts[1])
+		cfg.TLSSplitChunkSize, cfg.TLSSplitDelay, err = parseTLSSplitHello(opts.TLSSplitHello)
 		if err != nil {
 			return nil, fmt.Errorf("invalid tls-split-hello: %w", err)
 		}
 	}
 
 	if opts.ECHConfig != "" {
-		var b []byte
-		b, err = base64.StdEncoding.DecodeString(opts.ECHConfig)
-		if err != nil {
-			return nil, fmt.Errorf("invalid echconfig encoding: %w", err)
-		}
-
-		cfg.ECHConfigs, err = ctls.UnmarshalECHConfigs(b)
+		cfg.ECHConfigs, err = unmarshalECHConfigs(opts.ECHConfig)
 		if err != nil {
 			return nil, fmt.Errorf("invalid echconfig: %w", err)
 		}
@@ -179,18 +176,56 @@ func ParseConfig() (cfg *Config, err error) {
 	return cfg, nil
 }
 
-// createConnectTo creates a "connect-to" map from the string representation.
-func createConnectTo(connectTo []string) (m map[string]string, err error) {
+// parseConnectTo creates a "connect-to" map from the string representation.
+func parseConnectTo(connectTo []string) (m map[string]string, err error) {
 	m = map[string]string{}
 	for _, ct := range connectTo {
 		parts := strings.SplitN(ct, ":", 4)
 		if len(parts) != 4 {
-			return nil, fmt.Errorf("invalid connect-to format %s. Expected HOST1:PORT1:HOST2:PORT2", ct)
+			return nil, fmt.Errorf("invalid connect-to format %s, expected HOST1:PORT1:HOST2:PORT2", ct)
 		}
 
 		oldHost := parts[0] + ":" + parts[1]
 		newHost := parts[2] + ":" + parts[3]
 		m[oldHost] = newHost
+	}
+
+	return m, nil
+}
+
+// parseResolve creates a "resolve" map from the string representation.
+func parseResolve(resolve []string) (m map[string][]net.IP, err error) {
+	m = map[string][]net.IP{}
+
+	for _, r := range resolve {
+		parts := strings.SplitN(r, ":", 3)
+		if len(parts) != 3 {
+			return nil, fmt.Errorf("invalid resolve format %s, expected HOST:PORT:ADDRS", r)
+		}
+
+		host := parts[0]
+		addrs := parts[2]
+		var ipAddresses []net.IP
+
+		for _, a := range strings.Split(addrs, ",") {
+			ipAddr := net.ParseIP(a)
+			if ipAddr == nil {
+				return nil, fmt.Errorf("invalid addr %s", a)
+			}
+
+			// Trim zero bytes.
+			if ipAddr.To4() != nil {
+				ipAddr = ipAddr.To4()
+			}
+
+			ipAddresses = append(ipAddresses, ipAddr)
+		}
+
+		if len(ipAddresses) == 0 {
+			return nil, fmt.Errorf("no addrs for %s", host)
+		}
+
+		m[host] = ipAddresses
 	}
 
 	return m, nil
@@ -213,4 +248,35 @@ func createHeaders(headers []string) (h http.Header) {
 	}
 
 	return h
+}
+
+// parseTLSSplitHello parses --tls-split-hello, returns error if it's invalid.
+func parseTLSSplitHello(tlsSplitHello string) (chunkSize int, delay int, err error) {
+	parts := strings.SplitN(tlsSplitHello, ":", 2)
+	if len(parts) != 2 {
+		return 0, 0, fmt.Errorf("invalid tls-split-hello format: %s", tlsSplitHello)
+	}
+
+	chunkSize, err = strconv.Atoi(parts[0])
+	if err != nil {
+		return 0, 0, fmt.Errorf("invalid tls-split-hello: %w", err)
+	}
+
+	delay, err = strconv.Atoi(parts[1])
+	if err != nil {
+		return 0, 0, fmt.Errorf("invalid tls-split-hello: %w", err)
+	}
+
+	return chunkSize, delay, nil
+}
+
+// unmarshalECHConfigs parses the base64-encoded ECH config.
+func unmarshalECHConfigs(echConfig string) (echConfigs []ctls.ECHConfig, err error) {
+	var b []byte
+	b, err = base64.StdEncoding.DecodeString(echConfig)
+	if err != nil {
+		return nil, err
+	}
+
+	return ctls.UnmarshalECHConfigs(b)
 }

@@ -29,7 +29,7 @@ type Options struct {
 
 	// ConnectTo allows to override the connection target, i.e. for a request
 	// to the given HOST1:PORT1 pair, connect to HOST2:PORT2 instead.
-	ConnectTo []string `long:"connect-to" description:"For a request to the given HOST1:PORT1 pair, connect to HOST2:PORT2 instead." value-name:"<HOST1:PORT1:HOST2:PORT2>"`
+	ConnectTo []string `long:"connect-to" description:"For a request to the given HOST1:PORT1 pair, connect to HOST2:PORT2 instead. Can be specified multiple times." value-name:"<HOST1:PORT1:HOST2:PORT2>"`
 
 	// Head signals that the tool should only fetch headers. If specified,
 	// headers will be written to the output.
@@ -62,6 +62,10 @@ type Options struct {
 	// option is specified, there will be no attempt to discover the ECH
 	// configuration using DNS.
 	ECHConfig string `long:"echconfig" description:"ECH configuration to use for this request. Implicitly enables --ech when specified." value-name:"<base64-encoded data>"`
+
+	// Resolve allows to provide a custom address for a specific host and port
+	// pair. Supports '*' instead of the host name to cover all hosts.
+	Resolve []string `long:"resolve" description:"Provide a custom address for a specific host. port is ignored by gocurl. '*' can be used instead of the host name. Can be specified multiple times." value-name:"<[+]host:port:addr[,addr]...>"`
 
 	// TLSSplitHello is an option that allows splitting TLS ClientHello in two
 	// parts in order to avoid common DPI systems detecting TLS. CHUNKSIZE is

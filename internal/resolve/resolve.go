@@ -65,6 +65,12 @@ func (r *Resolver) LookupHost(hostname string) (ipAddresses []net.IP, err error)
 		return ipAddresses, nil
 	}
 
+	if addrs, ok := r.lookupFromCfg(hostname); ok {
+		r.out.Debug("Resolved IP addresses for %s from the configuration", hostname)
+
+		return addrs, nil
+	}
+
 	var errs []error
 
 	for _, qType := range []uint16{dns.TypeA, dns.TypeAAAA} {
@@ -148,6 +154,24 @@ func (r *Resolver) LookupECHConfigs(hostname string) (echConfigs []ctls.ECHConfi
 	return echConfigs, nil
 }
 
+// lookupFromCfg checks if IP address for hostname are specified in the
+// configuration.
+func (r *Resolver) lookupFromCfg(hostname string) (addrs []net.IP, ok bool) {
+	if len(r.cfg.Resolve) == 0 {
+		return nil, false
+	}
+
+	if addrs, ok = r.cfg.Resolve[hostname]; ok {
+		return addrs, ok
+	}
+
+	if addrs, ok = r.cfg.Resolve["*"]; ok {
+		return addrs, ok
+	}
+
+	return nil, false
+}
+
 // dnsLookupAll sends the query m to each DNS resolver until it gets
 // a successful non-empty response.  If all attempts are unsuccessful, returns
 // an error.
@@ -170,8 +194,6 @@ func dnsLookupAll(m *dns.Msg, addrs []string) (resp *dns.Msg, err error) {
 // dnsLookup sends the query m over to DNS resolver addr and returns the
 // response.  Adds additional logic on top of it: returns an error when the
 // response code is not success or when there're no resource records.
-//
-// TODO(ameshkov): --resolve logic should be added here.
 func dnsLookup(m *dns.Msg, addr string) (resp *dns.Msg, err error) {
 	resp, err = dns.Exchange(m, net.JoinHostPort(addr, "53"))
 	qTypeStr := dns.Type(m.Question[0].Qtype).String()

@@ -14,9 +14,14 @@ adheres to [Semantic Versioning][semver].
 ### Added
 
 * `gocurl` now supports Encrypted Client Hello. Added `--ech` and `--echconfig`
-  command-line arguments, see examples in README.md to learn more. ([#3](#3))
+  command-line arguments, see examples in README.md to learn more. ([#3][#3])
+* Added `--resolve` command-line argument support. It works similarly to the one
+  in `curl` with one important difference: `gocurl` ignores `port` there and
+  simply returns specified IP addresses for the host. ([#5][#5])
 
 [#3]: https://github.com/ameshkov/gocurl/issues/3
+
+[#5]: https://github.com/ameshkov/gocurl/issues/5
 
 [unreleased]: https://github.com/ameshkov/gocurl/compare/v1.0.5...HEAD
 

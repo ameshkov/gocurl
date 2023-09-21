@@ -47,6 +47,11 @@ Use it the same way you use original curl.
 * `gocurl -x socks5://user:pass@host:port https://httpbin.agrd.workers.dev/get`
   use a proxy server.
 * `gocurl -I --tlsv1.3 https://tls-v1-2.badssl.com:1012/` force use TLS v1.3.
+* `gocurl -I --connect-to="httpbin.agrd.workers.dev:443:172.67.152.85:443"
+  https://httpbin.agrd.workers.dev/head` connect to the specified IP addresses.
+* `gocurl -I --resolve="httpbin.agrd.workers.dev:443:172.67.152.85"
+  https://httpbin.agrd.workers.dev/head` resolve the hostname to the specified
+  IP address. Note, that unlike `curl`, `gocurl` ignores port in this option.
 
 <a id="newstuff"></a>
 
@@ -132,8 +137,6 @@ Here's what happens now:
 ## All command-line arguments
 
 ```shell
-% gocurl --help
-
 Usage:
   gocurl [OPTIONS]
 
@@ -148,7 +151,7 @@ Application Options:
   -x, --proxy=[protocol://username:password@]host[:port]    Use the specified proxy. The proxy string can be
                                                             specified with a protocol:// prefix.
       --connect-to=<HOST1:PORT1:HOST2:PORT2>                For a request to the given HOST1:PORT1 pair, connect to
-                                                            HOST2:PORT2 instead.
+                                                            HOST2:PORT2 instead. Can be specified multiple times.
   -I, --head                                                Fetch the headers only.
   -k, --insecure                                            Disables TLS verification of the connection.
       --tlsv1.3                                             Forces gocurl to use TLS v1.3.
@@ -159,6 +162,9 @@ Application Options:
       --ech                                                 Enables ECH support for the request.
       --echconfig=<base64-encoded data>                     ECH configuration to use for this request. Implicitly
                                                             enables --ech when specified.
+      --resolve=<[+]host:port:addr[,addr]...>               Provide a custom address for a specific host. port is
+                                                            ignored by gocurl. '*' can be used instead of the host
+                                                            name. Can be specified multiple times.
       --tls-split-hello=<CHUNKSIZE:DELAY>                   An option that allows splitting TLS ClientHello in two
                                                             parts in order to avoid common DPI systems detecting
                                                             TLS. CHUNKSIZE is the size of the first bytes before
