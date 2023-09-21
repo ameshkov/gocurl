@@ -11,6 +11,10 @@ adheres to [Semantic Versioning][semver].
 
 ## [Unreleased]
 
+[unreleased]: https://github.com/ameshkov/gocurl/compare/v1.1.0...HEAD
+
+## [1.1.0] - 2023-09-21
+
 ### Added
 
 * `gocurl` now supports Encrypted Client Hello. Added `--ech` and `--echconfig`
@@ -19,11 +23,15 @@ adheres to [Semantic Versioning][semver].
   in `curl` with one important difference: `gocurl` ignores `port` there and
   simply returns specified IP addresses for the host. ([#5][#5])
 
+[See changes][1.1.0changes].
+
 [#3]: https://github.com/ameshkov/gocurl/issues/3
 
 [#5]: https://github.com/ameshkov/gocurl/issues/5
 
-[unreleased]: https://github.com/ameshkov/gocurl/compare/v1.0.5...HEAD
+[1.1.0changes]: https://github.com/ameshkov/gocurl/compare/v1.0.6...v1.1.0
+
+[1.1.0]: https://github.com/ameshkov/gocurl/releases/tag/v1.1.0
 
 ## [1.0.6] - 2023-09-17
 
