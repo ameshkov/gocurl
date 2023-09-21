@@ -104,7 +104,7 @@ gocurl -v \
 > server and the client implementation and does not work with Cloudflare at the
 > moment.
 
-Here's what happens on the network level:
+Here's what happens under the hood:
 
 1. `gocurl` resolves `crypto.cloudflare.com` IP address and connects to it.
 2. It sends TLS ClientHello (outer) with encrypted inner ClientHello to that IP
