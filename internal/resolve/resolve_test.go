@@ -45,6 +45,7 @@ func TestResolver_LookupHost_preConfigured(t *testing.T) {
 	r, err := resolve.NewResolver(&config.Config{
 		Resolve: map[string][]net.IP{
 			"example.org": {{127, 0, 0, 1}},
+			"*":           {{127, 0, 0, 2}},
 		},
 	}, out)
 	require.NoError(t, err)
@@ -53,6 +54,11 @@ func TestResolver_LookupHost_preConfigured(t *testing.T) {
 	require.NoError(t, err)
 	require.NotEmpty(t, addrs)
 	require.Equal(t, []net.IP{{127, 0, 0, 1}}, addrs)
+
+	addrs, err = r.LookupHost("example.net")
+	require.NoError(t, err)
+	require.NotEmpty(t, addrs)
+	require.Equal(t, []net.IP{{127, 0, 0, 2}}, addrs)
 }
 
 func TestResolver_LookupECHConfigs(t *testing.T) {
