@@ -5,10 +5,9 @@ import (
 	"fmt"
 	"net"
 
-	ctls "github.com/ameshkov/cfcrypto/tls"
-
 	"github.com/AdguardTeam/golibs/errors"
 	"github.com/AdguardTeam/golibs/netutil/sysresolv"
+	ctls "github.com/ameshkov/cfcrypto/tls"
 	"github.com/ameshkov/gocurl/internal/config"
 	"github.com/ameshkov/gocurl/internal/output"
 	"github.com/miekg/dns"
@@ -122,6 +121,8 @@ func (r *Resolver) LookupECHConfigs(hostname string) (echConfigs []ctls.ECHConfi
 	}
 
 	// Find all ECH configurations in the HTTPS records.
+	var errs []error
+
 	for _, rr := range resp.Answer {
 		switch v := rr.(type) {
 		case *dns.HTTPS:
@@ -131,6 +132,7 @@ func (r *Resolver) LookupECHConfigs(hostname string) (echConfigs []ctls.ECHConfi
 					echConfig, echErr := ctls.UnmarshalECHConfigs(echConfigRR.ECH)
 					if echErr != nil {
 						r.out.Debug("Invalid ECH configuration: %v", echErr)
+						errs = append(errs, echErr)
 					} else {
 						echConfigs = append(echConfigs, echConfig...)
 					}
@@ -140,7 +142,7 @@ func (r *Resolver) LookupECHConfigs(hostname string) (echConfigs []ctls.ECHConfi
 	}
 
 	if len(echConfigs) == 0 {
-		return nil, ErrEmptyResponse
+		return nil, errors.Join(ErrEmptyResponse, errors.Join(errs...))
 	}
 
 	return echConfigs, nil

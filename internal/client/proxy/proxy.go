@@ -11,19 +11,19 @@ import (
 	"golang.org/x/net/proxy"
 )
 
-// ProxyDialer implements dialer.Dialer interface and opens connections through
-// the specified proxy.
-type ProxyDialer struct {
+// Dialer implements dialer.Dialer interface and opens connections through the
+// specified proxy.
+type Dialer struct {
 	proxyDialer proxy.Dialer
 	out         *output.Output
 }
 
 // type check
-var _ dialer.Dialer = (*ProxyDialer)(nil)
+var _ dialer.Dialer = (*Dialer)(nil)
 
 // NewProxyDialer creates a new instance of *ProxyDialer.
-func NewProxyDialer(proxyURL *url.URL, forward dialer.Dialer, out *output.Output) (d *ProxyDialer, err error) {
-	d = &ProxyDialer{out: out}
+func NewProxyDialer(proxyURL *url.URL, forward dialer.Dialer, out *output.Output) (d *Dialer, err error) {
+	d = &Dialer{out: out}
 	d.proxyDialer, err = createProxyDialer(proxyURL, forward)
 	if err != nil {
 		return nil, err
@@ -35,7 +35,7 @@ func NewProxyDialer(proxyURL *url.URL, forward dialer.Dialer, out *output.Output
 }
 
 // Dial implements the dialer.Dialer interface for *ProxyDialer.
-func (d *ProxyDialer) Dial(network, addr string) (conn net.Conn, err error) {
+func (d *Dialer) Dial(network, addr string) (conn net.Conn, err error) {
 	d.out.Debug("Connecting through proxy to %s", addr)
 
 	conn, err = d.proxyDialer.Dial(network, addr)
