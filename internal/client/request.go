@@ -1,0 +1,61 @@
+package client
+
+import (
+	"bytes"
+	"fmt"
+	"io"
+	"net/http"
+
+	"github.com/ameshkov/gocurl/internal/config"
+	"github.com/ameshkov/gocurl/internal/version"
+)
+
+// NewRequest creates a new *http.Request based on *cmd.Options.
+func NewRequest(cfg *config.Config) (req *http.Request, err error) {
+	var bodyStream io.Reader
+	bodyStream, err = createBody(cfg)
+	if err != nil {
+		return nil, err
+	}
+
+	method := getMethod(cfg)
+
+	req, err = http.NewRequest(method, cfg.RequestURL.String(), bodyStream)
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Set("User-Agent", fmt.Sprintf("gocurl/%s", version.Version()))
+	addBodyHeaders(req, cfg)
+	addHeaders(req, cfg)
+
+	return req, err
+}
+
+// createBody creates body stream if it's required by the command-line
+// arguments.
+func createBody(cfg *config.Config) (body io.Reader, err error) {
+	if cfg.Data == "" {
+		return nil, nil
+	}
+
+	return bytes.NewBufferString(cfg.Data), nil
+}
+
+// addBodyHeaders adds necessary HTTP headers if it's required by the
+// command-line arguments. For instance, -d/--data requires adding the
+// Content-Type: application/x-www-form-urlencoded header.
+func addBodyHeaders(req *http.Request, cfg *config.Config) {
+	if cfg.Data != "" {
+		req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	}
+}
+
+// addHeaders adds HTTP headers that are specified in command-line arguments.
+func addHeaders(req *http.Request, cfg *config.Config) {
+	for k, l := range cfg.Headers {
+		for _, v := range l {
+			req.Header.Add(k, v)
+		}
+	}
+}

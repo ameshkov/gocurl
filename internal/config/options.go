@@ -53,6 +53,16 @@ type Options struct {
 	// HTTPv3 forces to use HTTP v3.
 	HTTPv3 bool `long:"http3" description:"Forces gocurl to use HTTP v2." optional:"yes" optional-value:"true"`
 
+	// ECH forces usage of Encrypted Client Hello for the request.  If other
+	// ECH-related fields are not specified, the ECH configuration will be
+	// received from the DNS settings.
+	ECH bool `long:"ech" description:"Enables ECH support for the request." optional:"yes" optional-value:"true"`
+
+	// ECHConfig is a custom ECH configuration to use for this request.  If this
+	// option is specified, there will be no attempt to discover the ECH
+	// configuration using DNS.
+	ECHConfig string `long:"echconfig" description:"ECH configuration to use for this request. Implicitly enables --ech when specified." value-name:"<base64-encoded data>"`
+
 	// TLSSplitHello is an option that allows splitting TLS ClientHello in two
 	// parts in order to avoid common DPI systems detecting TLS. CHUNKSIZE is
 	// the size of the first bytes before ClientHello is split, DELAY is delay

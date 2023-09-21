@@ -1,11 +1,44 @@
-package client
+// Package splittls implements the --tls-split-hello logic and allows splitting
+// TLS ClientHello.
+package splittls
 
 import (
 	"net"
 	"time"
 
+	"github.com/ameshkov/gocurl/internal/client/dialer"
 	"github.com/ameshkov/gocurl/internal/output"
 )
+
+// CreateDialFunc creates a dialFunc that splits the TLS ClientHello in two
+// parts.
+func CreateDialFunc(
+	firstChunkSize int,
+	delay int,
+	baseDial dialer.DialFunc,
+	out *output.Output,
+) (f dialer.DialFunc) {
+	out.Debug(
+		"Splitting TLS ClientHello is enabled. First chunk size is %d, delay is %d",
+		firstChunkSize,
+		delay,
+	)
+
+	return func(network, addr string) (conn net.Conn, err error) {
+		conn, err = baseDial(network, addr)
+		if err != nil {
+			return nil, err
+		}
+
+		return &splitTLSConn{
+			Conn:           conn,
+			baseConn:       conn,
+			firstChunkSize: firstChunkSize,
+			delay:          delay,
+			out:            out,
+		}, nil
+	}
+}
 
 // splitTLSConn is the implementation of net.Conn which only purpose is wait for
 // the ClientHello packet and split it in two parts when it is written.
@@ -92,34 +125,4 @@ func (c *splitTLSConn) Write(b []byte) (n int, err error) {
 	}
 
 	return c.baseConn.Write(b)
-}
-
-// createTLSSplitDialFunc creates a dialFunc that splits the TLS ClientHello
-// in two parts.
-func createTLSSplitDialFunc(
-	firstChunkSize int,
-	delay int,
-	baseDial dialFunc,
-	out *output.Output,
-) (f dialFunc) {
-	out.Debug(
-		"Splitting TLS ClientHello is enabled. First chunk size is %d, delay is %d",
-		firstChunkSize,
-		delay,
-	)
-
-	return func(network, addr string) (conn net.Conn, err error) {
-		conn, err = baseDial(network, addr)
-		if err != nil {
-			return nil, err
-		}
-
-		return &splitTLSConn{
-			Conn:           conn,
-			baseConn:       conn,
-			firstChunkSize: firstChunkSize,
-			delay:          delay,
-			out:            out,
-		}, nil
-	}
 }
