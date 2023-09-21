@@ -38,6 +38,23 @@ func TestResolver_LookupHost_ipAddr(t *testing.T) {
 	require.Equal(t, []net.IP{{127, 0, 0, 1}}, addrs)
 }
 
+func TestResolver_LookupHost_preConfigured(t *testing.T) {
+	out, err := output.NewOutput("", false)
+	require.NoError(t, err)
+
+	r, err := resolve.NewResolver(&config.Config{
+		Resolve: map[string][]net.IP{
+			"example.org": {{127, 0, 0, 1}},
+		},
+	}, out)
+	require.NoError(t, err)
+
+	addrs, err := r.LookupHost("example.org")
+	require.NoError(t, err)
+	require.NotEmpty(t, addrs)
+	require.Equal(t, []net.IP{{127, 0, 0, 1}}, addrs)
+}
+
 func TestResolver_LookupECHConfigs(t *testing.T) {
 	out, err := output.NewOutput("", false)
 	require.NoError(t, err)

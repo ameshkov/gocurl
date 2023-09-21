@@ -41,6 +41,11 @@ func (d *Direct) Dial(network, addr string) (conn net.Conn, err error) {
 	}
 
 	ipAddr := ipAddrs[0]
+	connectAddr := net.JoinHostPort(ipAddr.String(), port)
+
+	if connectAddr != addr {
+		d.out.Debug("Connecting to %s://%s", network, connectAddr)
+	}
 
 	conn, err = net.Dial(network, net.JoinHostPort(ipAddr.String(), port))
 	if err != nil {
