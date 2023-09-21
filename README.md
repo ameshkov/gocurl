@@ -6,7 +6,7 @@
 Simplified version of [`curl`](https://curl.se/) written in Go.
 
 1. Supports a limited subset of curl options.
-2. Supports some flags that curl does not (for instance, `json-output`).
+2. Supports some flags that curl does not [see here](#newstuff).
 
 ## Why in the world you need another curl?
 
@@ -48,13 +48,86 @@ Use it the same way you use original curl.
   use a proxy server.
 * `gocurl -I --tlsv1.3 https://tls-v1-2.badssl.com:1012/` force use TLS v1.3.
 
-Also, you can use some new stuff.
+<a id="newstuff"></a>
+
+### New stuff
+
+Also, you can use some new stuff that is not supported by curl.
 
 * `gocurl --json-output https://httpbin.agrd.workers.dev/get` write output in
   machine-readable format (JSON).
 * `gocurl --tls-split-hello=5:50 https://httpbin.agrd.workers.dev/get` split
   TLS ClientHello in two parts and make a 50ms delay after sending the first
   part.
+* `gocurl -v --ech https://crypto.cloudflare.com/cdn-cgi/trace` enables support
+  for ECH (Encrypted Client Hello) for the request. More on this [below](#ech).
+
+<a id="ech"></a>
+
+#### Encrypted Client Hello support
+
+ECH or Encrypted Client Hello is a new standard that allows completely
+encrypting TLS Client Hello. Currently, the RFC is in the [draft stage][echrfc],
+but it is already supported by some big names [like Cloudflare][echcloudflare].
+`gocurl` supports ECH and provides several options to use it.
+
+The simple option is just add `--ech` flag and see what happens:
+
+```shell
+gocurl -v --ech https://crypto.cloudflare.com/cdn-cgi/trace
+```
+
+In this case, `gocurl` will try to discover the ECH configuration from DNS
+records and then use them to establish the connection.
+
+Instead of that, you may choose to supply your own configuration in the same
+base64-encoded format as used by the SVCB record:
+
+```shell
+# Send a type=https query and find ech record there.
+% dig -t https crypto.cloudflare.com. +short
+1 . alpn="http/1.1,h2" ipv4hint=162.159.137.85,162.159.138.85 ech=AEX+DQBBvgAgACARWS42g5NmDZo5pIpTWSwHzTwzdRKPdUW732QbyUeyDQAEAAEAAQASY2xvdWRmbGFyZS1lY2guY29tAAA= ipv6hint=2606:4700:7::a29f:8955,2606:4700:7::a29f:8a55
+
+# You can now pass it to gocurl.
+gocurl -v \
+  --echconfig="AEX+DQBBvgAgACARWS42g5NmDZo5pIpTWSwHzTwzdRKPdUW732QbyUeyDQAEAAEAAQASY2xvdWRmbGFyZS1lY2guY29tAAA=" \
+  https://crypto.cloudflare.com/cdn-cgi/trace
+```
+
+> Interesting thing about ECH is that it may connect even if you use an expired
+> configuration (see HelloRetryRequest in the RFC).
+
+Here's what happens on the network level:
+
+1. `gocurl` resolves `crypto.cloudflare.com` IP address and connects to it.
+2. It sends TLS ClientHello (outer) with encrypted inner ClientHello to that IP
+   address. The ServerName field in the outer ClientHello is set to the one that
+   is encoded in the ECH configuration (in this example it will be
+   `cloudflare-ech.com`), and in the inner encrypted ClientHello it will be
+   set to `crypto.cloudflare.com`.
+
+You may want to configure a specific "client-facing" server instead and the way
+to do that is to use `--connect-to`. Let's send a request to `cloudflare.com`
+and use `crypto.cloudflare.com` as a client-facing server for that.
+
+```shell
+gocurl -v \
+  --connect-to="cloudflare.com:443:crypto.cloudflare.com:443" \
+  --echconfig="AEX+DQBBvgAgACARWS42g5NmDZo5pIpTWSwHzTwzdRKPdUW732QbyUeyDQAEAAEAAQASY2xvdWRmbGFyZS1lY2guY29tAAA=" \
+  https://cloudflare.com/cdn-cgi/trace
+```
+
+Here's what happens now:
+
+1. `gocurl` connects to `crypto.cloudflare.com` (client-facing relay).
+2. Sends a TLS ClientHello with `cloudflare-ech.com` in the Server Name
+   extension.
+3. Establishes a TLS connection with `cloudflare.com` using the inner encrypted
+   ClientHello.
+
+[echrfc]: https://datatracker.ietf.org/doc/draft-ietf-tls-esni/
+
+[echcloudflare]: https://blog.cloudflare.com/handshake-encryption-endgame-an-ech-update/
 
 ## All command-line arguments
 
@@ -65,14 +138,17 @@ Usage:
   gocurl [OPTIONS]
 
 Application Options:
-      --url=<URL>                                           URL the request will be made to. Can be specified without any flags.
+      --url=<URL>                                           URL the request will be made to. Can be specified
+                                                            without any flags.
   -X, --request=<method>                                    HTTP method. GET by default.
-  -d, --data=<data>                                         Sends the specified data to the HTTP server using content type
-                                                            application/x-www-form-urlencoded.
-  -H, --header=                                             Extra header to include in the request. Can be specified multiple times.
-  -x, --proxy=[protocol://username:password@]host[:port]    Use the specified proxy. The proxy string can be specified with a protocol://
-                                                            prefix.
-      --connect-to=<HOST1:PORT1:HOST2:PORT2>                For a request to the given HOST1:PORT1 pair, connect to HOST2:PORT2 instead.
+  -d, --data=<data>                                         Sends the specified data to the HTTP server using
+                                                            content type application/x-www-form-urlencoded.
+  -H, --header=                                             Extra header to include in the request. Can be
+                                                            specified multiple times.
+  -x, --proxy=[protocol://username:password@]host[:port]    Use the specified proxy. The proxy string can be
+                                                            specified with a protocol:// prefix.
+      --connect-to=<HOST1:PORT1:HOST2:PORT2>                For a request to the given HOST1:PORT1 pair, connect to
+                                                            HOST2:PORT2 instead.
   -I, --head                                                Fetch the headers only.
   -k, --insecure                                            Disables TLS verification of the connection.
       --tlsv1.3                                             Forces gocurl to use TLS v1.3.
@@ -80,13 +156,18 @@ Application Options:
       --http1.1                                             Forces gocurl to use HTTP v1.1.
       --http2                                               Forces gocurl to use HTTP v2.
       --http3                                               Forces gocurl to use HTTP v2.
-      --tls-split-hello=<CHUNKSIZE:DELAY>                   An option that allows splitting TLS ClientHello in two parts in order to avoid
-                                                            common DPI systems detecting TLS. CHUNKSIZE is the size of the first bytes
-                                                            before ClientHello is split, DELAY is delay in milliseconds before sending the
-                                                            second part.
-      --json-output                                         Makes gocurl write machine-readable output in JSON format.
-  -o, --output=<file>                                       Defines where to write the received data. If not set, gocurl will write
-                                                            everything to stdout.
+      --ech                                                 Enables ECH support for the request.
+      --echconfig=<base64-encoded data>                     ECH configuration to use for this request. Implicitly
+                                                            enables --ech when specified.
+      --tls-split-hello=<CHUNKSIZE:DELAY>                   An option that allows splitting TLS ClientHello in two
+                                                            parts in order to avoid common DPI systems detecting
+                                                            TLS. CHUNKSIZE is the size of the first bytes before
+                                                            ClientHello is split, DELAY is delay in milliseconds
+                                                            before sending the second part.
+      --json-output                                         Makes gocurl write machine-readable output in JSON
+                                                            format.
+  -o, --output=<file>                                       Defines where to write the received data. If not set,
+                                                            gocurl will write everything to stdout.
   -v, --verbose                                             Verbose output (optional).
 
 Help Options:

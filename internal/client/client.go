@@ -31,7 +31,7 @@ func NewClient(cfg *config.Config, out *output.Output) (client *http.Client, err
 // *http.Client. Depending on the configuration it may create a H1, H2 or H3
 // transport.
 func createHTTPTransport(
-	d *dialer,
+	d *clientDialer,
 	cfg *config.Config,
 ) (rt http.RoundTripper, err error) {
 	if cfg.ForceHTTP3 {
@@ -42,7 +42,7 @@ func createHTTPTransport(
 }
 
 // createH3Transport creates a http.RoundTripper to be used in HTTP/3 client.
-func createH3Transport(d *dialer) (rt http.RoundTripper, err error) {
+func createH3Transport(d *clientDialer) (rt http.RoundTripper, err error) {
 	return &http3.RoundTripper{
 		DisableCompression: true,
 		Dial:               d.DialQUIC,
@@ -52,7 +52,7 @@ func createH3Transport(d *dialer) (rt http.RoundTripper, err error) {
 // createH12Transport creates a http.RoundTripper to be used in HTTP/1.1 or
 // HTTP/2 client.
 func createH12Transport(
-	d *dialer,
+	d *clientDialer,
 	cfg *config.Config,
 ) (rt http.RoundTripper, err error) {
 	transport := &http.Transport{

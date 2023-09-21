@@ -151,7 +151,7 @@ type ResponseData struct {
 func responseToJSON(resp *http.Response) (b []byte, err error) {
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, fmt.Errorf("failed to read response body: %v", err)
+		return nil, fmt.Errorf("failed to read response body: %w", err)
 	}
 
 	data := ResponseData{
@@ -162,6 +162,7 @@ func responseToJSON(resp *http.Response) (b []byte, err error) {
 		Body:       base64.StdEncoding.EncodeToString(body),
 	}
 
+	// TODO(ameshkov): fix TLS logging for ECH-enabled requests.
 	if resp.TLS != nil {
 		data.TLS = &TLSState{
 			Version:     resp.TLS.Version,

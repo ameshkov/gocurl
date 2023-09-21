@@ -3,11 +3,14 @@ package config
 
 import (
 	"crypto/tls"
+	"encoding/base64"
 	"fmt"
 	"net/http"
 	"net/url"
 	"strconv"
 	"strings"
+
+	ctls "github.com/ameshkov/cfcrypto/tls"
 )
 
 // Config is a strictly-typed and validated configuration structure which is
@@ -54,6 +57,15 @@ type Config struct {
 	// ForceHTTP2 forces using HTTP/3.
 	ForceHTTP3 bool
 
+	// ECH forces usage of Encrypted Client Hello for the request.  If other
+	// ECH-related fields are not specified, the ECH configuration will be
+	// received from the DNS settings.
+	ECH bool
+
+	// ECHConfigs is a set of ECH configurations that will be used when opening
+	// an encrypted connection.
+	ECHConfigs []ctls.ECHConfig
+
 	// TLSSplitChunkSize is a size of the first chunk of ClientHello that is
 	// sent to the server.
 	TLSSplitChunkSize int
@@ -96,25 +108,26 @@ func ParseConfig() (cfg *Config, err error) {
 		ForceHTTP11: opts.HTTPv11,
 		ForceHTTP2:  opts.HTTPv2,
 		ForceHTTP3:  opts.HTTPv3,
+		ECH:         opts.ECH,
 		RawOptions:  opts,
 	}
 
 	cfg.RequestURL, err = url.Parse(opts.URL)
 	if err != nil {
-		return nil, fmt.Errorf("invalid URL specified %s: %v", opts.URL, err)
+		return nil, fmt.Errorf("invalid URL specified %s: %w", opts.URL, err)
 	}
 
 	if opts.ProxyURL != "" {
 		cfg.ProxyURL, err = url.Parse(opts.ProxyURL)
 		if err != nil {
-			return nil, fmt.Errorf("invalid proxy URL specified %s: %v", opts.ProxyURL, err)
+			return nil, fmt.Errorf("invalid proxy URL specified %s: %w", opts.ProxyURL, err)
 		}
 	}
 
 	if len(opts.ConnectTo) > 0 {
 		cfg.ConnectTo, err = createConnectTo(opts.ConnectTo)
 		if err != nil {
-			return nil, fmt.Errorf("invalid connect-to specified %v: %v", opts.ConnectTo, err)
+			return nil, fmt.Errorf("invalid connect-to specified %v: %w", opts.ConnectTo, err)
 		}
 	}
 
@@ -138,13 +151,29 @@ func ParseConfig() (cfg *Config, err error) {
 
 		cfg.TLSSplitChunkSize, err = strconv.Atoi(parts[0])
 		if err != nil {
-			return nil, fmt.Errorf("invalid tls-split-hello: %v", err)
+			return nil, fmt.Errorf("invalid tls-split-hello: %w", err)
 		}
 
 		cfg.TLSSplitDelay, err = strconv.Atoi(parts[1])
 		if err != nil {
-			return nil, fmt.Errorf("invalid tls-split-hello: %v", err)
+			return nil, fmt.Errorf("invalid tls-split-hello: %w", err)
 		}
+	}
+
+	if opts.ECHConfig != "" {
+		var b []byte
+		b, err = base64.StdEncoding.DecodeString(opts.ECHConfig)
+		if err != nil {
+			return nil, fmt.Errorf("invalid echconfig encoding: %w", err)
+		}
+
+		cfg.ECHConfigs, err = ctls.UnmarshalECHConfigs(b)
+		if err != nil {
+			return nil, fmt.Errorf("invalid echconfig: %w", err)
+		}
+
+		// --echconfig implicitly enables --ech as well.
+		cfg.ECH = true
 	}
 
 	return cfg, nil

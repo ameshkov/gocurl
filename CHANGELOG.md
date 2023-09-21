@@ -11,6 +11,13 @@ adheres to [Semantic Versioning][semver].
 
 ## [Unreleased]
 
+### Added
+
+* `gocurl` now supports Encrypted Client Hello. Added `--ech` and `--echconfig`
+  command-line arguments, see examples in README.md to learn more. ([#3](#3))
+
+[#3]: https://github.com/ameshkov/gocurl/issues/3
+
 [unreleased]: https://github.com/ameshkov/gocurl/compare/v1.0.5...HEAD
 
 ## [1.0.6] - 2023-09-17

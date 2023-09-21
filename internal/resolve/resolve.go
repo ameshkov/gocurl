@@ -5,12 +5,20 @@ import (
 	"fmt"
 	"net"
 
+	ctls "github.com/ameshkov/cfcrypto/tls"
+
 	"github.com/AdguardTeam/golibs/errors"
 	"github.com/AdguardTeam/golibs/netutil/sysresolv"
 	"github.com/ameshkov/gocurl/internal/config"
 	"github.com/ameshkov/gocurl/internal/output"
 	"github.com/miekg/dns"
 )
+
+// ErrEmptyResponse means that the response does not contain necessary RRs.
+const ErrEmptyResponse = errors.Error("empty response")
+
+// ErrNoResolvers means that system resolvers couldn't be discovered.
+const ErrNoResolvers = errors.Error("no resolvers")
 
 // Resolver is a structure that is used whenever DNS resolution is required.
 //
@@ -32,7 +40,7 @@ func NewResolver(cfg *config.Config, out *output.Output) (r *Resolver, err error
 
 	addrs := sr.Get()
 	if len(addrs) == 0 {
-		return nil, errors.Error("resolve: no resolvers found")
+		return nil, ErrNoResolvers
 	}
 
 	return &Resolver{
@@ -44,7 +52,7 @@ func NewResolver(cfg *config.Config, out *output.Output) (r *Resolver, err error
 
 // LookupHost looks up all IP addresses of the hostname.
 func (r *Resolver) LookupHost(hostname string) (ipAddresses []net.IP, err error) {
-	// TODO: logging
+	r.out.Debug("Resolving IP addresses of %s", hostname)
 
 	ip := net.ParseIP(hostname)
 	if ip != nil {
@@ -54,6 +62,7 @@ func (r *Resolver) LookupHost(hostname string) (ipAddresses []net.IP, err error)
 		}
 
 		ipAddresses = append(ipAddresses, ip)
+
 		return ipAddresses, nil
 	}
 
@@ -62,53 +71,127 @@ func (r *Resolver) LookupHost(hostname string) (ipAddresses []net.IP, err error)
 	for _, qType := range []uint16{dns.TypeA, dns.TypeAAAA} {
 		msg := newMsg(hostname, qType)
 
-		for _, addr := range r.addrs {
-			respIPs, dnsErr := lookupIPAddresses(msg, addr)
-			if dnsErr != nil {
-				errs = append(errs, dnsErr)
-			} else {
-				ipAddresses = append(ipAddresses, respIPs...)
+		resp, dnsErr := dnsLookupAll(msg, r.addrs)
+		if dnsErr != nil {
+			errs = append(errs, dnsErr)
 
-				// If the IP addresses for the qType were retrieved successfully,
-				// break the inner cycle and get to the next query type.
-				break
+			// try another qType now.
+			continue
+		}
+
+		for _, rr := range resp.Answer {
+			switch v := rr.(type) {
+			case *dns.A:
+				ipAddresses = append(ipAddresses, v.A)
+			case *dns.AAAA:
+				ipAddresses = append(ipAddresses, v.AAAA)
 			}
 		}
 	}
 
 	if len(ipAddresses) == 0 {
-		return nil, errors.List("failed to lookup", errs...)
+		return nil, errors.Join(ErrEmptyResponse, errors.Join(errs...))
+	}
+
+	r.out.Debug("Found the following IP addresses for %s", hostname)
+	for _, ipAddr := range ipAddresses {
+		r.out.Debug("IP: %s", ipAddr)
 	}
 
 	return ipAddresses, nil
 }
 
-// lookupIPAddresses makes a DNS query to the specified address and returns all
-// IP addresses from the response.
-func lookupIPAddresses(m *dns.Msg, addr string) (ipAddresses []net.IP, err error) {
-	resp, err := dns.Exchange(m, net.JoinHostPort(addr, "53"))
+// LookupECHConfigs attempts to discover ECH configurations in DNS records of
+// the specified hostname.  If no ECH configuration can be discovered for this
+// domain, the function returns ErrEmptyResponse (checked via errors.Is/As).
+func (r *Resolver) LookupECHConfigs(hostname string) (echConfigs []ctls.ECHConfig, err error) {
+	r.out.Debug("Resolving ECH configuration for %s", hostname)
+
+	if len(r.cfg.ECHConfigs) > 0 {
+		r.out.Debug("Return pre-configured ECH configuration for %s", hostname)
+
+		return r.cfg.ECHConfigs, nil
+	}
+
+	m := newMsg(hostname, dns.TypeHTTPS)
+
+	var resp *dns.Msg
+	resp, err = dnsLookupAll(m, r.addrs)
+	if err != nil {
+		return nil, err
+	}
+
+	// Find all ECH configurations in the HTTPS records.
+	for _, rr := range resp.Answer {
+		switch v := rr.(type) {
+		case *dns.HTTPS:
+			for _, svcb := range v.SVCB.Value {
+				if svcb.Key() == dns.SVCB_ECHCONFIG {
+					echConfigRR := svcb.(*dns.SVCBECHConfig)
+					echConfig, echErr := ctls.UnmarshalECHConfigs(echConfigRR.ECH)
+					if echErr != nil {
+						r.out.Debug("Invalid ECH configuration: %v", echErr)
+					} else {
+						echConfigs = append(echConfigs, echConfig...)
+					}
+				}
+			}
+		}
+	}
+
+	if len(echConfigs) == 0 {
+		return nil, ErrEmptyResponse
+	}
+
+	return echConfigs, nil
+}
+
+// dnsLookupAll sends the query m to each DNS resolver until it gets
+// a successful non-empty response.  If all attempts are unsuccessful, returns
+// an error.
+func dnsLookupAll(m *dns.Msg, addrs []string) (resp *dns.Msg, err error) {
+	var errs []error
+
+	for _, addr := range addrs {
+		var dnsErr error
+		resp, dnsErr = dnsLookup(m, addr)
+		if dnsErr != nil {
+			errs = append(errs, dnsErr)
+		} else {
+			return resp, nil
+		}
+	}
+
+	return nil, errors.List("dns lookup", errs...)
+}
+
+// dnsLookup sends the query m over to DNS resolver addr and returns the
+// response.  Adds additional logic on top of it: returns an error when the
+// response code is not success or when there're no resource records.
+//
+// TODO(ameshkov): --resolve logic should be added here.
+func dnsLookup(m *dns.Msg, addr string) (resp *dns.Msg, err error) {
+	resp, err = dns.Exchange(m, net.JoinHostPort(addr, "53"))
+	qTypeStr := dns.Type(m.Question[0].Qtype).String()
+
 	if err != nil {
 		return nil, err
 	}
 
 	if resp.Rcode != dns.RcodeSuccess {
-		return nil, fmt.Errorf("dns response code from %s: %s", addr, rCodeToString(resp.Rcode))
+		return nil, fmt.Errorf(
+			"dns response %s code from %s: %s",
+			qTypeStr,
+			addr,
+			rCodeToString(resp.Rcode),
+		)
 	}
 
-	for _, rr := range resp.Answer {
-		switch v := rr.(type) {
-		case *dns.A:
-			ipAddresses = append(ipAddresses, v.A)
-		case *dns.AAAA:
-			ipAddresses = append(ipAddresses, v.AAAA)
-		}
+	if len(resp.Answer) == 0 {
+		return nil, errors.Annotate(ErrEmptyResponse, "no %s resource records from %s: %w", qTypeStr, addr)
 	}
 
-	if len(ipAddresses) == 0 {
-		return nil, fmt.Errorf("no IP addresses in response from %s", addr)
-	}
-
-	return ipAddresses, nil
+	return resp, nil
 }
 
 // newMsg creates new *dns.Msg of the specified type for hostname.
