@@ -100,7 +100,9 @@ gocurl -v \
 ```
 
 > Interesting thing about ECH is that it may connect even if you use an expired
-> configuration (see HelloRetryRequest in the RFC).
+> configuration (see HelloRetryRequest in the RFC). It depends on both the
+> server and the client implementation and does not work with Cloudflare at the
+> moment.
 
 Here's what happens on the network level:
 
@@ -121,6 +123,9 @@ gocurl -v \
   --echconfig="AEX+DQBBvgAgACARWS42g5NmDZo5pIpTWSwHzTwzdRKPdUW732QbyUeyDQAEAAEAAQASY2xvdWRmbGFyZS1lY2guY29tAAA=" \
   https://cloudflare.com/cdn-cgi/trace
 ```
+
+> For this command to work you may need to replace `--echconfig` with the
+> current one discovered using DNS as was explained before.
 
 Here's what happens now:
 
