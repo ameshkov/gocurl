@@ -11,6 +11,10 @@ adheres to [Semantic Versioning][semver].
 
 ## [Unreleased]
 
+[unreleased]: https://github.com/ameshkov/gocurl/compare/v1.2.0...HEAD
+
+## [1.2.0] - 2023-09-22
+
 ### Added
 
 * Added `--dns-servers` command-line argument support. Besides regular DNS,
@@ -23,11 +27,15 @@ adheres to [Semantic Versioning][semver].
   addition to that, much more TLS-related information is printed to the output
   including information about TLS certificates. ([#8][#8])
 
+[See changes][1.2.0changes].
+
 [#6]: https://github.com/ameshkov/gocurl/issues/6
 
 [#8]: https://github.com/ameshkov/gocurl/issues/8
 
-[unreleased]: https://github.com/ameshkov/gocurl/compare/v1.1.0...HEAD
+[1.2.0changes]: https://github.com/ameshkov/gocurl/compare/v1.1.0...v1.2.0
+
+[1.2.0]: https://github.com/ameshkov/gocurl/releases/tag/v1.2.0
 
 ## [1.1.0] - 2023-09-21
 
