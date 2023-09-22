@@ -63,9 +63,6 @@ type tlsConnectionStater interface {
 // interface and provides a way for HTTP client to get access to TLS properties
 // of the connection.
 type connWrapper struct {
-	*tls.Conn
-
-	// baseConn
 	baseConn *ctls.Conn
 }
 

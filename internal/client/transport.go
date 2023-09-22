@@ -30,7 +30,7 @@ func (t *transport) RoundTrip(r *http.Request) (resp *http.Response, err error) 
 
 	// Make sure that resp.TLS field is set regardless of what protocol was
 	// used.  This is important for ECH-enabled connections as crypto/tls is
-	// not used there.
+	// not used there and the regular http.Transport will not set the TLS field.
 	type tlsConnectionStater interface {
 		ConnectionState() tls.ConnectionState
 	}
