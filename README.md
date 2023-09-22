@@ -6,7 +6,8 @@
 Simplified version of [`curl`](https://curl.se/) written in Go.
 
 1. Supports a limited subset of curl options.
-2. Supports some flags that curl does not [see here](#newstuff).
+2. Supports some flags that curl does
+   not. [Read more about the new stuff](#newstuff)).
 
 ## Why in the world you need another curl?
 
