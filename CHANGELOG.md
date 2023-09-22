@@ -11,11 +11,19 @@ adheres to [Semantic Versioning][semver].
 
 ## [Unreleased]
 
+### Added
+
+* Added `--dns-servers` command-line argument support. Besides regular DNS,
+  `gocurl` also supports encrypted DNS, see examples in README.md to learn
+  more. ([#6][#6])
+
 ### Fixed
 
 * TLS state is now printed to the output for ECH-enabled connections. In
   addition to that, much more TLS-related information is printed to the output
   including information about TLS certificates. ([#8][#8])
+
+[#6]: https://github.com/ameshkov/gocurl/issues/6
 
 [#8]: https://github.com/ameshkov/gocurl/issues/8
 

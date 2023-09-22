@@ -6,6 +6,7 @@ import (
 	"net"
 	"testing"
 
+	"github.com/AdguardTeam/dnsproxy/upstream"
 	ctls "github.com/ameshkov/cfcrypto/tls"
 	"github.com/ameshkov/gocurl/internal/config"
 	"github.com/ameshkov/gocurl/internal/output"
@@ -18,6 +19,24 @@ func TestResolver_LookupHost(t *testing.T) {
 	require.NoError(t, err)
 
 	r, err := resolve.NewResolver(&config.Config{}, out)
+	require.NoError(t, err)
+
+	addrs, err := r.LookupHost("www.example.org")
+	require.NoError(t, err)
+	require.NotEmpty(t, addrs)
+}
+
+func TestResolver_LookupHost_customServers(t *testing.T) {
+	out, err := output.NewOutput("", false)
+	require.NoError(t, err)
+
+	u, err := upstream.AddressToUpstream("tls://1.1.1.1", nil)
+	require.NoError(t, err)
+
+	cfg := &config.Config{}
+	cfg.DNSServers = append(cfg.DNSServers, u)
+
+	r, err := resolve.NewResolver(cfg, out)
 	require.NoError(t, err)
 
 	addrs, err := r.LookupHost("www.example.org")

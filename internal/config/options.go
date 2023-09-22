@@ -63,6 +63,11 @@ type Options struct {
 	// configuration using DNS.
 	ECHConfig string `long:"echconfig" description:"ECH configuration to use for this request. Implicitly enables --ech when specified." value-name:"<base64-encoded data>"`
 
+	// DNSServers is a list of DNS servers that will be used to resolve
+	// hostnames when making a request.  Encrypted DNS addresses or DNS stamps
+	// can be used here.
+	DNSServers string `long:"dns-servers" description:"DNS servers to use when making the request. Supports encrypted DNS: tls://, https://, quic://, sdns://" value-name:"<DNSADDR1,DNSADDR2>"`
+
 	// Resolve allows to provide a custom address for a specific host and port
 	// pair. Supports '*' instead of the host name to cover all hosts.
 	Resolve []string `long:"resolve" description:"Provide a custom address for a specific host. port is ignored by gocurl. '*' can be used instead of the host name. Can be specified multiple times." value-name:"<[+]host:port:addr[,addr]...>"`
