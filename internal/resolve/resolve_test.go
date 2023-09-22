@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"github.com/AdguardTeam/dnsproxy/upstream"
-
 	ctls "github.com/ameshkov/cfcrypto/tls"
 	"github.com/ameshkov/gocurl/internal/config"
 	"github.com/ameshkov/gocurl/internal/output"
