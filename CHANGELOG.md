@@ -11,6 +11,14 @@ adheres to [Semantic Versioning][semver].
 
 ## [Unreleased]
 
+### Fixed
+
+* TLS state is now printed to the output for ECH-enabled connections. In
+  addition to that, much more TLS-related information is printed to the output
+  including information about TLS certificates. ([#8][#8])
+
+[#8]: https://github.com/ameshkov/gocurl/issues/8
+
 [unreleased]: https://github.com/ameshkov/gocurl/compare/v1.1.0...HEAD
 
 ## [1.1.0] - 2023-09-21
