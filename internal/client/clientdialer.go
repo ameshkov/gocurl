@@ -187,5 +187,9 @@ func createTLSConfig(cfg *config.Config) (tlsConfig *tls.Config) {
 		tlsConfig.NextProtos = []string{"h3"}
 	}
 
+	if len(tlsConfig.NextProtos) == 0 {
+		tlsConfig.NextProtos = []string{"h2", "http/1.1"}
+	}
+
 	return tlsConfig
 }

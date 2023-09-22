@@ -2,7 +2,9 @@
 package client
 
 import (
+	"context"
 	"crypto/tls"
+	"net"
 	"net/http"
 
 	"github.com/ameshkov/gocurl/internal/config"
@@ -69,7 +71,11 @@ func createHTTPTransport(
 		return createH3Transport(d)
 	}
 
-	return createH12Transport(d, cfg)
+	if cfg.ForceHTTP2 {
+		return createH2Transport(d)
+	}
+
+	return createH12Transport(d)
 }
 
 // createH3Transport creates a http.RoundTripper to be used in HTTP/3 client.
@@ -80,24 +86,67 @@ func createH3Transport(d *clientDialer) (rt http.RoundTripper, err error) {
 	}, nil
 }
 
+// h2Transport is a http.RoundTripper implementation that forcibly use
+// http2.Transport.
+type h2Transport struct {
+	d *clientDialer
+}
+
+// type check
+var _ http.RoundTripper = (*h2Transport)(nil)
+
+// RoundTrip implements the http.RoundTripper for *h2Transport.
+func (t *h2Transport) RoundTrip(r *http.Request) (resp *http.Response, err error) {
+	port := r.URL.Port()
+	if port == "" {
+		switch r.URL.Scheme {
+		case "http":
+			port = "80"
+		case "https":
+			port = "443"
+		}
+	}
+
+	addr := net.JoinHostPort(r.URL.Hostname(), port)
+	conn, err := t.d.DialTLSContext(context.Background(), "tcp", addr)
+	if err != nil {
+		return nil, err
+	}
+
+	tr := &http2.Transport{DisableCompression: true}
+	clientConn, err := tr.NewClientConn(conn)
+	if err != nil {
+		return nil, err
+	}
+
+	defer func(clientConn *http2.ClientConn) {
+		_ = clientConn.Close()
+	}(clientConn)
+
+	return clientConn.RoundTrip(r)
+}
+
+// createH2Transport creates a http.RoundTripper to be used specifically with
+// HTTP/2.  This option is required when using --ech option as in this case
+// we don't use *tls.Conn and it does not work well with the regular transport.
+func createH2Transport(d *clientDialer) (rt http.RoundTripper, err error) {
+	return &h2Transport{d: d}, nil
+}
+
 // createH12Transport creates a http.RoundTripper to be used in HTTP/1.1 or
 // HTTP/2 client.
-func createH12Transport(
-	d *clientDialer,
-	cfg *config.Config,
-) (rt http.RoundTripper, err error) {
-	transport := &http.Transport{
+func createH12Transport(d *clientDialer) (rt http.RoundTripper, err error) {
+	tr := &http.Transport{
 		DisableCompression: true,
 		DisableKeepAlives:  true,
 		DialContext:        d.DialContext,
 		DialTLSContext:     d.DialTLSContext,
 	}
 
-	if cfg.ForceHTTP2 {
-		_ = http2.ConfigureTransport(transport)
-	}
+	// Enable HTTP/2 support explicitly.
+	_ = http2.ConfigureTransport(tr)
 
-	return transport, nil
+	return tr, nil
 }
 
 // getMethod returns HTTP method depending on the arguments.

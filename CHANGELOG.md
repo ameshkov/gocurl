@@ -11,6 +11,15 @@ adheres to [Semantic Versioning][semver].
 
 ## [Unreleased]
 
+### Fixed
+
+* Fixed an issue with `--http2` not being able to work together with `--ech`. In
+  addition to that there's also one more change: `gocurl` by default will send
+  both `h2` and `http/1.1` in TLS ALPN extension and use the protocol selected
+  by the server. ([#14][#14])
+
+[#14]: https://github.com/ameshkov/gocurl/issues/14
+
 [unreleased]: https://github.com/ameshkov/gocurl/compare/v1.2.0...HEAD
 
 ## [1.2.0] - 2023-09-22
