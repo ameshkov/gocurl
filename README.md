@@ -66,6 +66,9 @@ Also, you can use some new stuff that is not supported by curl.
   part.
 * `gocurl -v --ech https://crypto.cloudflare.com/cdn-cgi/trace` enables support
   for ECH (Encrypted Client Hello) for the request. More on this [below](#ech).
+* `gocurl --dns-servers="tls://dns.google" https://httpbin.agrd.workers.dev/get`
+  uses custom DNS-over-TLS server to resolve hostnames. More on this
+  [below](#dns).
 
 <a id="ech"></a>
 
@@ -138,6 +141,48 @@ Here's what happens now:
 [echrfc]: https://datatracker.ietf.org/doc/draft-ietf-tls-esni/
 
 [echcloudflare]: https://blog.cloudflare.com/handshake-encryption-endgame-an-ech-update/
+
+<a id="dns"></a>
+
+#### Custom DNS servers
+
+`gocurl` allows using custom DNS servers to resolve hostnames when making
+requests. This can be achieved by using `--dns-servers` command-line argument.
+`curl` with `c-ares` also supports this command-line argument, but `gocurl`
+adds encrypted DNS support on top of it, it supports all popular DNS encryption
+protocols: DNS-over-QUIC, DNS-over-HTTPS, DNS-over-QUIC and DNSCrypt.
+
+You can specify multiple DNS servers, in this case `gocurl` will attempt to use
+them one by one until it receives a response or until all of them fail:
+
+```shell
+gocurl \
+  --dns-servers="tls://dns.adguard-dns.com,tls://dns.google" \
+  https://example.org/
+
+```
+
+* DNS-over-QUIC
+  ```shell
+  gocurl --dns-servers="quic://dns.adguard-dns.com" https://example.org/
+  ```
+
+* DNS-over-HTTPS
+  ```shell
+  gocurl --dns-servers="https://dns.adguard-dns.com/dns-query" https://example.org/
+  ```
+
+* DNS-over-TLS
+  ```shell
+  gocurl --dns-servers="tls://dns.adguard-dns.com" https://example.org/
+  ```
+
+* DNSCrypt
+  ```shell
+  gocurl \
+      --dns-servers sdns://AQIAAAAAAAAAFDE3Ni4xMDMuMTMwLjEzMDo1NDQzINErR_JS3PLCu_iZEIbq95zkSV2LFsigxDIuUso_OQhzIjIuZG5zY3J5cHQuZGVmYXVsdC5uczEuYWRndWFyZC5jb20 \
+      https://example.org/
+  ```
 
 ## All command-line arguments
 

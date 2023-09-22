@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/AdguardTeam/dnsproxy/upstream"
 	ctls "github.com/ameshkov/cfcrypto/tls"
 )
 
@@ -71,6 +72,10 @@ type Config struct {
 	// addresses for a specific host or all hosts (if '*' is used instead of
 	// the host name).
 	Resolve map[string][]net.IP
+
+	// DNSServers is a list of upstream DNS servers that will be used for
+	// resolving hostnames.
+	DNSServers []upstream.Upstream
 
 	// TLSSplitChunkSize is a size of the first chunk of ClientHello that is
 	// sent to the server.
@@ -141,6 +146,13 @@ func ParseConfig() (cfg *Config, err error) {
 		cfg.Resolve, err = parseResolve(opts.Resolve)
 		if err != nil {
 			return nil, fmt.Errorf("invalid resolve specified %s: %w", opts.Resolve, err)
+		}
+	}
+
+	if opts.DNSServers != "" {
+		cfg.DNSServers, err = parseDNSServers(opts.DNSServers)
+		if err != nil {
+			return nil, fmt.Errorf("invalid dns-servers specified %s: %w", opts.DNSServers, err)
 		}
 	}
 
@@ -229,6 +241,22 @@ func parseResolve(resolve []string) (m map[string][]net.IP, err error) {
 	}
 
 	return m, nil
+}
+
+// parseDNSServers parses --dns-servers command-line argument and returns the
+// list of upstream.Upstream created from them.
+func parseDNSServers(dnsServers string) (upstreams []upstream.Upstream, err error) {
+	addrs := strings.Split(dnsServers, ",")
+	for _, addr := range addrs {
+		u, uErr := upstream.AddressToUpstream(addr, nil)
+		if uErr != nil {
+			return nil, fmt.Errorf("invalid DNS server %s: %w", addr, uErr)
+		}
+
+		upstreams = append(upstreams, u)
+	}
+
+	return upstreams, nil
 }
 
 // createHeaders creates HTTP headers map from the string array.

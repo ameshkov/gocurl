@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 
+	"github.com/AdguardTeam/dnsproxy/upstream"
 	"github.com/AdguardTeam/golibs/errors"
 	"github.com/AdguardTeam/golibs/netutil/sysresolv"
 	ctls "github.com/ameshkov/cfcrypto/tls"
@@ -19,6 +20,9 @@ const ErrEmptyResponse = errors.Error("empty response")
 // ErrNoResolvers means that system resolvers couldn't be discovered.
 const ErrNoResolvers = errors.Error("no resolvers")
 
+// ErrInvalidResolver means that the configured resolver is invalid.
+const ErrInvalidResolver = errors.Error("invalid resolver")
+
 // Resolver is a structure that is used whenever DNS resolution is required.
 //
 // TODO(ameshkov): Add --resolve parameter support.
@@ -26,26 +30,28 @@ type Resolver struct {
 	cfg *config.Config
 	out *output.Output
 
-	// addrs is the list of system resolvers to use.
-	addrs []string
+	// upstreams is the list of system resolvers to use.
+	upstreams []upstream.Upstream
 }
 
 // NewResolver creates a new instance of *Resolver.
 func NewResolver(cfg *config.Config, out *output.Output) (r *Resolver, err error) {
-	sr, err := sysresolv.NewSystemResolvers(nil)
-	if err != nil {
-		return nil, err
-	}
+	var upstreams []upstream.Upstream
 
-	addrs := sr.Addrs()
-	if len(addrs) == 0 {
-		return nil, ErrNoResolvers
+	if len(cfg.DNSServers) > 0 {
+		out.Debug("Using custom configured DNS servers")
+		upstreams = cfg.DNSServers
+	} else {
+		upstreams, err = getSystemResolvers()
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return &Resolver{
-		cfg:   cfg,
-		out:   out,
-		addrs: addrs,
+		cfg:       cfg,
+		out:       out,
+		upstreams: upstreams,
 	}, nil
 }
 
@@ -76,7 +82,7 @@ func (r *Resolver) LookupHost(hostname string) (ipAddresses []net.IP, err error)
 	for _, qType := range []uint16{dns.TypeA, dns.TypeAAAA} {
 		msg := newMsg(hostname, qType)
 
-		resp, dnsErr := dnsLookupAll(msg, r.addrs)
+		resp, u, dnsErr := dnsLookupAll(msg, r.upstreams)
 		if dnsErr != nil {
 			errs = append(errs, dnsErr)
 
@@ -92,6 +98,8 @@ func (r *Resolver) LookupHost(hostname string) (ipAddresses []net.IP, err error)
 				ipAddresses = append(ipAddresses, v.AAAA)
 			}
 		}
+
+		r.out.Debug("%s responses received from %s", dns.Type(qType), u.Address())
 	}
 
 	if len(ipAddresses) == 0 {
@@ -121,10 +129,13 @@ func (r *Resolver) LookupECHConfigs(hostname string) (echConfigs []ctls.ECHConfi
 	m := newMsg(hostname, dns.TypeHTTPS)
 
 	var resp *dns.Msg
-	resp, err = dnsLookupAll(m, r.addrs)
+	var u upstream.Upstream
+	resp, u, err = dnsLookupAll(m, r.upstreams)
 	if err != nil {
 		return nil, err
 	}
+
+	r.out.Debug("ECH configuration resolved using %s", u.Address())
 
 	// Find all ECH configurations in the HTTPS records.
 	var errs []error
@@ -175,27 +186,27 @@ func (r *Resolver) lookupFromCfg(hostname string) (addrs []net.IP, ok bool) {
 // dnsLookupAll sends the query m to each DNS resolver until it gets
 // a successful non-empty response.  If all attempts are unsuccessful, returns
 // an error.
-func dnsLookupAll(m *dns.Msg, addrs []string) (resp *dns.Msg, err error) {
+func dnsLookupAll(m *dns.Msg, upstreams []upstream.Upstream) (resp *dns.Msg, u upstream.Upstream, err error) {
 	var errs []error
 
-	for _, addr := range addrs {
+	for _, u = range upstreams {
 		var dnsErr error
-		resp, dnsErr = dnsLookup(m, addr)
+		resp, dnsErr = dnsLookup(m, u)
 		if dnsErr != nil {
 			errs = append(errs, dnsErr)
 		} else {
-			return resp, nil
+			return resp, u, nil
 		}
 	}
 
-	return nil, errors.List("dns lookup", errs...)
+	return nil, nil, errors.List("dns lookup", errs...)
 }
 
 // dnsLookup sends the query m over to DNS resolver addr and returns the
 // response.  Adds additional logic on top of it: returns an error when the
-// response code is not success or when there're no resource records.
-func dnsLookup(m *dns.Msg, addr string) (resp *dns.Msg, err error) {
-	resp, err = dns.Exchange(m, net.JoinHostPort(addr, "53"))
+// response code is not success or when there are no resource records.
+func dnsLookup(m *dns.Msg, u upstream.Upstream) (resp *dns.Msg, err error) {
+	resp, err = u.Exchange(m)
 	qTypeStr := dns.Type(m.Question[0].Qtype).String()
 
 	if err != nil {
@@ -206,13 +217,14 @@ func dnsLookup(m *dns.Msg, addr string) (resp *dns.Msg, err error) {
 		return nil, fmt.Errorf(
 			"dns response %s code from %s: %s",
 			qTypeStr,
-			addr,
+			u.Address(),
 			rCodeToString(resp.Rcode),
 		)
 	}
 
 	if len(resp.Answer) == 0 {
-		return nil, errors.Annotate(ErrEmptyResponse, "no %s resource records from %s: %w", qTypeStr, addr)
+		return nil,
+			errors.Annotate(ErrEmptyResponse, "no %s resource records from %s: %w", qTypeStr, u.Address())
 	}
 
 	return resp, nil
@@ -240,4 +252,29 @@ func rCodeToString(rCode int) (str string) {
 	}
 
 	return fmt.Sprintf("TYPE_%d", rCode)
+}
+
+// getSystemResolvers returns a list of upstream.Upstream that were created
+// from system resolvers.
+func getSystemResolvers() (upstreams []upstream.Upstream, err error) {
+	sr, err := sysresolv.NewSystemResolvers(nil)
+	if err != nil {
+		return nil, err
+	}
+
+	addrs := sr.Addrs()
+	for _, addr := range addrs {
+		u, uErr := upstream.AddressToUpstream(addr, nil)
+		if uErr != nil {
+			return nil, errors.Join(ErrInvalidResolver, uErr)
+		}
+
+		upstreams = append(upstreams, u)
+	}
+
+	if len(upstreams) == 0 {
+		return nil, ErrNoResolvers
+	}
+
+	return upstreams, nil
 }
