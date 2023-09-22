@@ -2,7 +2,6 @@
 package cmd
 
 import (
-	"crypto/tls"
 	"errors"
 	"fmt"
 	"io"
@@ -44,9 +43,9 @@ func Main() {
 
 	out.Debug("Starting gocurl %s with arguments:\n%s", version.Version(), cfg.RawOptions)
 
-	c, err := client.NewClient(cfg, out)
+	transport, err := client.NewTransport(cfg, out)
 	if err != nil {
-		out.Info("Failed to create client: %v", err)
+		out.Info("Failed to create HTTP transport: %v", err)
 
 		os.Exit(1)
 	}
@@ -66,20 +65,11 @@ func Main() {
 	cloneReq, _ := client.NewRequest(cfg)
 	out.DebugRequest(cloneReq)
 
-	resp, err := c.Do(req)
+	resp, err := transport.RoundTrip(req)
 	if err != nil {
 		out.Info("Failed to make request: %v", err)
 
 		os.Exit(1)
-	}
-
-	if resp.TLS != nil {
-		out.Debug("TLS version: %s", tls.VersionName(resp.TLS.Version))
-		out.Debug("TLS cipher suite: %s", tls.CipherSuiteName(resp.TLS.CipherSuite))
-
-		if resp.TLS.NegotiatedProtocol != "" {
-			out.Debug("TLS negotiated protocol: %s", resp.TLS.NegotiatedProtocol)
-		}
 	}
 
 	out.DebugResponse(resp)

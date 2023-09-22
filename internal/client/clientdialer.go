@@ -26,6 +26,12 @@ type clientDialer struct {
 	tlsConfig *tls.Config
 	resolver  *resolve.Resolver
 	dial      dialer.DialFunc
+
+	// conn is the last established connection via the dialer.  It can be a TLS
+	// connection if DialTLSContext was used.
+	//
+	// TODO(ameshkov): handle QUIC connections.
+	conn net.Conn
 }
 
 // newDialer creates a new instance of the clientDialer.
@@ -59,17 +65,47 @@ func (d *clientDialer) DialTLSContext(_ context.Context, network, addr string) (
 	}
 
 	if d.cfg.ECH {
-		return d.handshakeECH(conn)
+		d.conn, err = d.handshakeECH(conn)
+	} else {
+		d.conn, err = d.handshakeTLS(conn)
 	}
 
-	return d.handshakeTLS(conn)
+	return d.conn, err
 }
 
 // DialContext implements proxy.ContextDialer for *clientDialer.
 func (d *clientDialer) DialContext(_ context.Context, network, addr string) (c net.Conn, err error) {
 	d.out.Debug("Connecting to %s", addr)
 
-	return d.dial(network, addr)
+	d.conn, err = d.dial(network, addr)
+
+	return d.conn, err
+}
+
+// DialQUIC establishes a new QUIC connection and is supposed to be used by
+// http3.RoundTripper.
+func (d *clientDialer) DialQUIC(
+	ctx context.Context,
+	addr string,
+	_ *tls.Config,
+	cfg *quic.Config,
+) (c quic.EarlyConnection, err error) {
+	conn, err := d.dial("udp", addr)
+	if err != nil {
+		return nil, err
+	}
+
+	uConn, ok := conn.(net.PacketConn)
+	if !ok {
+		return nil, fmt.Errorf("dialer returned not a PacketConn for %s", addr)
+	}
+
+	udpAddr, err := net.ResolveUDPAddr("udp", addr)
+	if err != nil {
+		return nil, err
+	}
+
+	return quic.DialEarly(ctx, uConn, udpAddr, d.tlsConfig, cfg)
 }
 
 // handshakeTLS attempts to establish a TLS connection.
@@ -91,32 +127,6 @@ func (d *clientDialer) handshakeECH(conn net.Conn) (tlsConn net.Conn, err error)
 	}
 
 	return ech.HandshakeECH(conn, echConfigs, d.tlsConfig, d.out)
-}
-
-// DialQUIC establishes a new QUIC connection and is supposed to be used by
-// http3.RoundTripper.
-func (d *clientDialer) DialQUIC(
-	ctx context.Context,
-	addr string,
-	_ *tls.Config,
-	cfg *quic.Config,
-) (quic.EarlyConnection, error) {
-	conn, err := d.dial("udp", addr)
-	if err != nil {
-		return nil, err
-	}
-
-	uConn, ok := conn.(net.PacketConn)
-	if !ok {
-		return nil, fmt.Errorf("dialer returned not a PacketConn for %s", addr)
-	}
-
-	udpAddr, err := net.ResolveUDPAddr("udp", addr)
-	if err != nil {
-		return nil, err
-	}
-
-	return quic.DialEarly(ctx, uConn, udpAddr, d.tlsConfig, cfg)
 }
 
 // createDialFunc creates dialFunc that implements all the logic configured by

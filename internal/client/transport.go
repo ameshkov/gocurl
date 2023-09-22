@@ -2,6 +2,7 @@
 package client
 
 import (
+	"crypto/tls"
 	"net/http"
 
 	"github.com/ameshkov/gocurl/internal/config"
@@ -10,21 +11,51 @@ import (
 	"golang.org/x/net/http2"
 )
 
-// NewClient creates a new *http.Client based on *cmd.Options.
-func NewClient(cfg *config.Config, out *output.Output) (client *http.Client, err error) {
-	c := &http.Client{}
+// transport is a wrapper over regular http.RoundTripper that is used to add
+// additional logic on top of RoundTrip.
+type transport struct {
+	d    *clientDialer
+	base http.RoundTripper
+}
 
+// type check
+var _ http.RoundTripper = (*transport)(nil)
+
+// RoundTrip implements the http.RoundTripper interface for *transport.
+func (t *transport) RoundTrip(r *http.Request) (resp *http.Response, err error) {
+	resp, err = t.base.RoundTrip(r)
+	if err != nil {
+		return nil, err
+	}
+
+	// Make sure that resp.TLS field is set regardless of what protocol was
+	// used.  This is important for ECH-enabled connections as crypto/tls is
+	// not used there.
+	type tlsConnectionStater interface {
+		ConnectionState() tls.ConnectionState
+	}
+	if c, ok := t.d.conn.(tlsConnectionStater); ok {
+		state := c.ConnectionState()
+		resp.TLS = &state
+	}
+
+	return resp, err
+}
+
+// NewTransport creates a new http.RoundTripper that will be used for making
+// the request.
+func NewTransport(cfg *config.Config, out *output.Output) (rt http.RoundTripper, err error) {
 	d, err := newDialer(cfg, out)
 	if err != nil {
 		return nil, err
 	}
 
-	c.Transport, err = createHTTPTransport(d, cfg)
+	bt, err := createHTTPTransport(d, cfg)
 	if err != nil {
 		return nil, err
 	}
 
-	return c, nil
+	return &transport{d: d, base: bt}, nil
 }
 
 // createHTTPTransport creates http.RoundTripper that will be used by the
