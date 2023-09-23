@@ -72,7 +72,8 @@ func TestHandshake_encryptedClientHello(t *testing.T) {
 }
 
 func TestHandshake_postQuantum(t *testing.T) {
-	const domainName = "pq.cloudflareresearch.com"
+	const domainName = "cloudflare.com"
+	const path = "cdn-cgi/trace"
 
 	out, err := output.NewOutput("", false)
 	require.NoError(t, err)
@@ -81,7 +82,7 @@ func TestHandshake_postQuantum(t *testing.T) {
 	require.NoError(t, err)
 
 	tlsConf := &tls.Config{
-		ServerName: "pq.cloudflareresearch.com",
+		ServerName: domainName,
 		NextProtos: []string{"http/1.1"},
 	}
 
@@ -94,7 +95,7 @@ func TestHandshake_postQuantum(t *testing.T) {
 	tlsConn, err := cfcrypto.Handshake(conn, tlsConf, nil, cfg, out)
 	require.NoError(t, err)
 
-	u := fmt.Sprintf("https://%s/", domainName)
+	u := fmt.Sprintf("https://%s/%s", domainName, path)
 	req, err := http.NewRequest(http.MethodGet, u, nil)
 	require.NoError(t, err)
 
@@ -115,5 +116,5 @@ func TestHandshake_postQuantum(t *testing.T) {
 	require.NotEmpty(t, body)
 
 	bodyStr := string(body)
-	require.Contains(t, bodyStr, "You are using <em>X25519Kyber768Draft00</em>")
+	require.Contains(t, bodyStr, "kex=X25519Kyber768Draft00")
 }

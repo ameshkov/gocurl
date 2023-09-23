@@ -11,6 +11,10 @@ adheres to [Semantic Versioning][semver].
 
 ## [Unreleased]
 
+[unreleased]: https://github.com/ameshkov/gocurl/compare/v1.3.0...HEAD
+
+## [1.3.0] - 2023-09-23
+
 ### Added
 
 * Added an option to use Post-Quantum secure algorithms for establishing TLS
@@ -24,11 +28,15 @@ adheres to [Semantic Versioning][semver].
   both `h2` and `http/1.1` in TLS ALPN extension and use the protocol selected
   by the server. ([#14][#14])
 
+[See changes][1.3.0changes].
+
 [#14]: https://github.com/ameshkov/gocurl/issues/14
 
 [#15]: https://github.com/ameshkov/gocurl/issues/15
 
-[unreleased]: https://github.com/ameshkov/gocurl/compare/v1.2.0...HEAD
+[1.3.0changes]: https://github.com/ameshkov/gocurl/compare/v1.2.0...v1.3.0
+
+[1.3.0]: https://github.com/ameshkov/gocurl/releases/tag/v1.3.0
 
 ## [1.2.0] - 2023-09-22
 
