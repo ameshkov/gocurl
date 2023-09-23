@@ -9,6 +9,18 @@ Simplified version of [`curl`](https://curl.se/) written in Go.
 2. Supports some flags that curl does
    not. [Read more about the new stuff](#newstuff).
 
+* [Why in the world you need another curl?](#why)
+* [How to install gocurl?](#install)
+* [How to use gocurl?](#howtouse)
+* [New stuff](#newstuff)
+    * [Encrypted ClientHello](#ech)
+    * [Custom DNS servers](#dns)
+    * [Experimental flags](#exp)
+        * [Post-quantum cryptography](#pq)
+* [All command-line arguments](#allcmdarguments)
+
+<a id="why"></a>
+
 ## Why in the world you need another curl?
 
 Curl is certainly awesome, but sometimes I need to have better control over
@@ -18,7 +30,9 @@ me to implement the necessary parts of curl in Go.
 Also, I'd like to be able to extend it with what fits my specific needs.
 Unfortunately, curl is a bit too huge for that now.
 
-## How to install gocurl
+<a id="install"></a>
+
+## How to install gocurl?
 
 * Using homebrew:
     ```shell
@@ -31,7 +45,9 @@ Unfortunately, curl is a bit too huge for that now.
 * You can get a binary from
   the [releases page](https://github.com/ameshkov/gocurl/releases).
 
-## How to use gocurl
+<a id="howtouse"></a>
+
+## How to use gocurl?
 
 Use it the same way you use original curl.
 
@@ -71,11 +87,11 @@ Also, you can use some new stuff that is not supported by curl.
   uses custom DNS-over-TLS server to resolve hostnames. More on this
   [below](#dns).
 * `gocurl --experiment=pq https://pq.cloudflareresearch.com/` enables
-  post-quantum cryptography support for the request. More on this [below][#exp].
+  post-quantum cryptography support for the request. More on this [below](#pq).
 
 <a id="ech"></a>
 
-#### Encrypted Client Hello support
+#### Encrypted ClientHello
 
 ECH or Encrypted Client Hello is a new standard that allows completely
 encrypting TLS Client Hello. Currently, the RFC is in the [draft stage][echrfc],
@@ -187,6 +203,8 @@ gocurl \
       https://example.org/
   ```
 
+<a id="exp"></a>
+
 #### Experimental flags
 
 Experimental flags are added to `gocurl` whenever there's a feature that may be
@@ -194,6 +212,8 @@ completely changed or removed in the future. Experiments can be enabled using
 the `--experiment=<name[:value]>` argument where `name` is the experiment name
 and `value` is an optional string value (the need for it depends on the actual
 experiment).
+
+<a id="pq"></a>
 
 ##### Post-quantum cryptography
 
@@ -208,6 +228,8 @@ gocurl --experiment=pq https://pq.cloudflareresearch.com/
 ```
 
 [postquantum]: https://blog.cloudflare.com/post-quantum-for-all/
+
+<a id="allcmdarguments"></a>
 
 ## All command-line arguments
 
@@ -248,6 +270,8 @@ Application Options:
       --json-output                                         Makes gocurl write machine-readable output in JSON format.
   -o, --output=<file>                                       Defines where to write the received data. If not set, gocurl will
                                                             write everything to stdout.
+      --experiment=<name[:value]>                           Allows enabling experimental options. See the documentation for
+                                                            available options. Can be specified multiple times.
   -v, --verbose                                             Verbose output (optional).
 
 Help Options:
