@@ -24,6 +24,9 @@ type transport struct {
 var _ http.RoundTripper = (*transport)(nil)
 
 // RoundTrip implements the http.RoundTripper interface for *transport.
+//
+// TODO(ameshkov): dial explicitly here and then check negotiation proto.
+// This approach will make it easier to handle protocols negotiation.
 func (t *transport) RoundTrip(r *http.Request) (resp *http.Response, err error) {
 	resp, err = t.base.RoundTrip(r)
 	if err != nil {
@@ -118,10 +121,6 @@ func (t *h2Transport) RoundTrip(r *http.Request) (resp *http.Response, err error
 	if err != nil {
 		return nil, err
 	}
-
-	defer func(clientConn *http2.ClientConn) {
-		_ = clientConn.Close()
-	}(clientConn)
 
 	return clientConn.RoundTrip(r)
 }

@@ -85,6 +85,9 @@ type Options struct {
 	// will write everything to stdout.
 	OutputPath string `short:"o" long:"output" description:"Defines where to write the received data. If not set, gocurl will write everything to stdout." value-name:"<file>"`
 
+	// Experiments allows to enable experimental configuration options.
+	Experiments []string `long:"experiment" description:"Allows enabling experimental options. See the documentation for available options. Can be specified multiple times." value-name:"<name[:value]>"`
+
 	// Verbose defines whether we should write the DEBUG-level log or not.
 	Verbose bool `short:"v" long:"verbose" description:"Verbose output (optional)." optional:"yes" optional-value:"true"`
 }

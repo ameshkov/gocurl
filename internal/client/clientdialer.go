@@ -6,9 +6,9 @@ import (
 	"fmt"
 	"net"
 
+	"github.com/ameshkov/gocurl/internal/client/cfcrypto"
 	"github.com/ameshkov/gocurl/internal/client/connectto"
 	"github.com/ameshkov/gocurl/internal/client/dialer"
-	"github.com/ameshkov/gocurl/internal/client/ech"
 	"github.com/ameshkov/gocurl/internal/client/proxy"
 	"github.com/ameshkov/gocurl/internal/client/splittls"
 	"github.com/ameshkov/gocurl/internal/config"
@@ -64,8 +64,9 @@ func (d *clientDialer) DialTLSContext(_ context.Context, network, addr string) (
 		return nil, err
 	}
 
-	if d.cfg.ECH {
-		d.conn, err = d.handshakeECH(conn)
+	_, postQuantum := d.cfg.Experiments[config.ExpPostQuantum]
+	if d.cfg.ECH || postQuantum {
+		d.conn, err = d.handshakeCTLS(conn)
 	} else {
 		d.conn, err = d.handshakeTLS(conn)
 	}
@@ -119,14 +120,11 @@ func (d *clientDialer) handshakeTLS(conn net.Conn) (tlsConn net.Conn, err error)
 	return tlsClient, nil
 }
 
-// handshakeECH attempts to establish a ECH-enabled TLS connection.
-func (d *clientDialer) handshakeECH(conn net.Conn) (tlsConn net.Conn, err error) {
-	echConfigs, err := d.resolver.LookupECHConfigs(d.tlsConfig.ServerName)
-	if err != nil {
-		return nil, err
-	}
-
-	return ech.HandshakeECH(conn, echConfigs, d.tlsConfig, d.out)
+// handshakeCTLS attempts to establish a TLS connection using Cloudflare's fork
+// of crypto/tls.  This is necessary to enable some features missing from the
+// standard library like ECH or post-quantum cryptography.
+func (d *clientDialer) handshakeCTLS(conn net.Conn) (tlsConn net.Conn, err error) {
+	return cfcrypto.Handshake(conn, d.tlsConfig, d.resolver, d.cfg, d.out)
 }
 
 // createDialFunc creates dialFunc that implements all the logic configured by

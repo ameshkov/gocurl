@@ -74,9 +74,11 @@ func Main() {
 
 	out.DebugResponse(resp)
 
-	defer func(r io.ReadCloser) {
-		_ = r.Close()
+	defer func(body io.ReadCloser) {
+		_ = body.Close()
 	}(resp.Body)
+
+	// TODO(ameshkov): close transport and all the connection that were used.
 
 	out.Write(resp, cfg)
 }
