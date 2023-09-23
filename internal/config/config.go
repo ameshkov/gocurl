@@ -92,11 +92,39 @@ type Config struct {
 	// received data will be written to stdout.
 	OutputPath string
 
+	// Experiments is a map where the key is Experiment and value is its
+	// optional configuration.
+	Experiments map[Experiment]string
+
 	// Verbose defines whether we should write the DEBUG-level log or not.
 	Verbose bool
 
 	// RawOptions is the raw command-line arguments struct (for logging only).
 	RawOptions *Options
+}
+
+// Experiment is an enumeration of experimental features available for us via
+// the --experiment flag.
+type Experiment string
+
+const (
+	// ExpNone is just an empty value, not an experiment.
+	ExpNone Experiment = ""
+
+	// ExpPostQuantum stands for post-quantum cryptography.  See the website for
+	// more details: https://pq.cloudflareresearch.com/.
+	ExpPostQuantum Experiment = "pq"
+)
+
+// NewExperiment tries to create an Experiment from string.  Returns error if
+// the string is not a valid member of the enumeration.
+func NewExperiment(str string) (e Experiment, err error) {
+	switch str {
+	case string(ExpPostQuantum):
+		return ExpPostQuantum, nil
+	}
+
+	return ExpNone, fmt.Errorf("invalid experiment name: %s", str)
 }
 
 // ParseConfig parses and validates os.Args and returns the final *Config
@@ -145,7 +173,7 @@ func ParseConfig() (cfg *Config, err error) {
 	if len(opts.Resolve) > 0 {
 		cfg.Resolve, err = parseResolve(opts.Resolve)
 		if err != nil {
-			return nil, fmt.Errorf("invalid resolve specified %s: %w", opts.Resolve, err)
+			return nil, fmt.Errorf("invalid resolve specified %v: %w", opts.Resolve, err)
 		}
 	}
 
@@ -183,6 +211,13 @@ func ParseConfig() (cfg *Config, err error) {
 
 		// --echconfig implicitly enables --ech as well.
 		cfg.ECH = true
+	}
+
+	if len(opts.Experiments) > 0 {
+		cfg.Experiments, err = parseExperiments(opts.Experiments)
+		if err != nil {
+			return nil, fmt.Errorf("invalid experiments %v: %w", opts.Experiments, err)
+		}
 	}
 
 	return cfg, nil
@@ -307,4 +342,29 @@ func unmarshalECHConfigs(echConfig string) (echConfigs []ctls.ECHConfig, err err
 	}
 
 	return ctls.UnmarshalECHConfigs(b)
+}
+
+// parseExperiments parses the --experiment command-line arguments into a map.
+// Returns an error if the experiment name is invalid.
+func parseExperiments(exps []string) (expMap map[Experiment]string, err error) {
+	expMap = map[Experiment]string{}
+
+	for _, exp := range exps {
+		parts := strings.SplitN(exp, ":", 2)
+		expName := parts[0]
+		var value string
+		if len(parts) == 2 {
+			value = parts[1]
+		}
+
+		var e Experiment
+		e, err = NewExperiment(expName)
+		if err != nil {
+			return nil, fmt.Errorf("invalid experiment: %s", exp)
+		}
+
+		expMap[e] = value
+	}
+
+	return expMap, nil
 }

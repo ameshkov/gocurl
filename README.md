@@ -70,6 +70,8 @@ Also, you can use some new stuff that is not supported by curl.
 * `gocurl --dns-servers="tls://dns.google" https://httpbin.agrd.workers.dev/get`
   uses custom DNS-over-TLS server to resolve hostnames. More on this
   [below](#dns).
+* `gocurl --experiment=pq https://pq.cloudflareresearch.com/` enables
+  post-quantum cryptography support for the request. More on this [below][#exp].
 
 <a id="ech"></a>
 
@@ -184,6 +186,28 @@ gocurl \
       --dns-servers sdns://AQIAAAAAAAAAFDE3Ni4xMDMuMTMwLjEzMDo1NDQzINErR_JS3PLCu_iZEIbq95zkSV2LFsigxDIuUso_OQhzIjIuZG5zY3J5cHQuZGVmYXVsdC5uczEuYWRndWFyZC5jb20 \
       https://example.org/
   ```
+
+#### Experimental flags
+
+Experimental flags are added to `gocurl` whenever there's a feature that may be
+completely changed or removed in the future. Experiments can be enabled using
+the `--experiment=<name[:value]>` argument where `name` is the experiment name
+and `value` is an optional string value (the need for it depends on the actual
+experiment).
+
+##### Post-quantum cryptography
+
+Post-quantum (PQ) cryptography has been designed to be secure against the
+threat of quantum computers. You can learn more about it from Cloudflare's
+[blog post][postquantum]. `gocurl` supports it via the `--experiment=pq` flag.
+
+Note, that it is not available for `--http3` at the moment.
+
+```shell
+gocurl --experiment=pq https://pq.cloudflareresearch.com/
+```
+
+[postquantum]: https://blog.cloudflare.com/post-quantum-for-all/
 
 ## All command-line arguments
 

@@ -11,6 +11,12 @@ adheres to [Semantic Versioning][semver].
 
 ## [Unreleased]
 
+### Added
+
+* Added an option to use Post-Quantum secure algorithms for establishing TLS
+  connections. This option is hidden under a new `--experiment` flag that is
+  described in README.md. ([#15][#15])
+
 ### Fixed
 
 * Fixed an issue with `--http2` not being able to work together with `--ech`. In
@@ -19,6 +25,8 @@ adheres to [Semantic Versioning][semver].
   by the server. ([#14][#14])
 
 [#14]: https://github.com/ameshkov/gocurl/issues/14
+
+[#15]: https://github.com/ameshkov/gocurl/issues/15
 
 [unreleased]: https://github.com/ameshkov/gocurl/compare/v1.2.0...HEAD
 
