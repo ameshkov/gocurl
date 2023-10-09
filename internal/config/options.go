@@ -51,7 +51,7 @@ type Options struct {
 	HTTPv2 bool `long:"http2" description:"Forces gocurl to use HTTP v2." optional:"yes" optional-value:"true"`
 
 	// HTTPv3 forces to use HTTP v3.
-	HTTPv3 bool `long:"http3" description:"Forces gocurl to use HTTP v2." optional:"yes" optional-value:"true"`
+	HTTPv3 bool `long:"http3" description:"Forces gocurl to use HTTP v3." optional:"yes" optional-value:"true"`
 
 	// ECH forces usage of Encrypted Client Hello for the request.  If other
 	// ECH-related fields are not specified, the ECH configuration will be

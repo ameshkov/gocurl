@@ -169,7 +169,7 @@ Here's what happens now:
 requests. This can be achieved by using `--dns-servers` command-line argument.
 `curl` with `c-ares` also supports this command-line argument, but `gocurl`
 adds encrypted DNS support on top of it, it supports all popular DNS encryption
-protocols: DNS-over-QUIC, DNS-over-HTTPS, DNS-over-QUIC and DNSCrypt.
+protocols: DNS-over-QUIC, DNS-over-HTTPS, DNS-over-TLS and DNSCrypt.
 
 You can specify multiple DNS servers, in this case `gocurl` will attempt to use
 them one by one until it receives a response or until all of them fail:
@@ -254,7 +254,7 @@ Application Options:
       --tlsv1.2                                             Forces gocurl to use TLS v1.2.
       --http1.1                                             Forces gocurl to use HTTP v1.1.
       --http2                                               Forces gocurl to use HTTP v2.
-      --http3                                               Forces gocurl to use HTTP v2.
+      --http3                                               Forces gocurl to use HTTP v3.
       --ech                                                 Enables ECH support for the request.
       --echconfig=<base64-encoded data>                     ECH configuration to use for this request. Implicitly enables --ech
                                                             when specified.
