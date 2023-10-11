@@ -1,6 +1,6 @@
 module github.com/ameshkov/gocurl
 
-go 1.21.1
+go 1.21
 
 require (
 	github.com/AdguardTeam/dnsproxy v0.55.0
