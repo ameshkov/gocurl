@@ -29,6 +29,10 @@ func NewRequest(cfg *config.Config) (req *http.Request, err error) {
 	addBodyHeaders(req, cfg)
 	addHeaders(req, cfg)
 
+	if ur := upgradeWebSocket(req); ur != nil {
+		req = ur
+	}
+
 	return req, err
 }
 

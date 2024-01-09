@@ -175,18 +175,20 @@ func createTLSConfig(cfg *config.Config) (tlsConfig *tls.Config) {
 
 	if cfg.ForceHTTP11 {
 		tlsConfig.NextProtos = []string{"http/1.1"}
-	}
-
-	if cfg.ForceHTTP2 {
+	} else if cfg.ForceHTTP2 {
 		tlsConfig.NextProtos = []string{"h2"}
-	}
-
-	if cfg.ForceHTTP3 {
+	} else if cfg.ForceHTTP3 {
 		tlsConfig.NextProtos = []string{"h3"}
 	}
 
 	if len(tlsConfig.NextProtos) == 0 {
-		tlsConfig.NextProtos = []string{"h2", "http/1.1"}
+		if isWebSocket(cfg.RequestURL) {
+			// TODO(ameshkov): Add H2 when it supports WebSocket: https://github.com/golang/go/issues/49918
+			// TODO(ameshkov): Add H3 when it supports WebSocket
+			tlsConfig.NextProtos = []string{"http/1.1"}
+		} else {
+			tlsConfig.NextProtos = []string{"h2", "http/1.1"}
+		}
 	}
 
 	return tlsConfig
