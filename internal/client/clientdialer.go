@@ -11,6 +11,7 @@ import (
 	"github.com/ameshkov/gocurl/internal/client/dialer"
 	"github.com/ameshkov/gocurl/internal/client/proxy"
 	"github.com/ameshkov/gocurl/internal/client/splittls"
+	"github.com/ameshkov/gocurl/internal/client/websocket"
 	"github.com/ameshkov/gocurl/internal/config"
 	"github.com/ameshkov/gocurl/internal/output"
 	"github.com/ameshkov/gocurl/internal/resolve"
@@ -49,7 +50,7 @@ func newDialer(cfg *config.Config, out *output.Output) (d *clientDialer, err err
 	return &clientDialer{
 		cfg:       cfg,
 		out:       out,
-		tlsConfig: createTLSConfig(cfg),
+		tlsConfig: createTLSConfig(cfg, out),
 		resolver:  resolver,
 		dial:      dial,
 	}, nil
@@ -162,7 +163,7 @@ func createDialFunc(
 }
 
 // createTLSConfig creates TLS config based on the configuration.
-func createTLSConfig(cfg *config.Config) (tlsConfig *tls.Config) {
+func createTLSConfig(cfg *config.Config, out *output.Output) (tlsConfig *tls.Config) {
 	tlsConfig = &tls.Config{
 		ServerName: cfg.RequestURL.Hostname(),
 		MinVersion: cfg.TLSMinVersion,
@@ -173,19 +174,29 @@ func createTLSConfig(cfg *config.Config) (tlsConfig *tls.Config) {
 		tlsConfig.InsecureSkipVerify = true
 	}
 
-	if cfg.ForceHTTP11 {
+	if websocket.IsWebSocket(cfg.RequestURL) {
+		out.Debug("Forcing ALPN http/1.1 as this is a WebSocket request")
+
+		// TODO(ameshkov): Add H2 when it supports WebSocket: https://github.com/golang/go/issues/49918
+		// TODO(ameshkov): Add H3 when it supports WebSocket
 		tlsConfig.NextProtos = []string{"http/1.1"}
-	}
+	} else if cfg.ForceHTTP11 {
+		out.Debug("Forcing ALPN http/1.1")
 
-	if cfg.ForceHTTP2 {
+		tlsConfig.NextProtos = []string{"http/1.1"}
+	} else if cfg.ForceHTTP2 {
+		out.Debug("Forcing ALPN h2")
+
 		tlsConfig.NextProtos = []string{"h2"}
-	}
+	} else if cfg.ForceHTTP3 {
+		out.Debug("Forcing ALPN h3")
 
-	if cfg.ForceHTTP3 {
 		tlsConfig.NextProtos = []string{"h3"}
 	}
 
 	if len(tlsConfig.NextProtos) == 0 {
+		out.Debug("By default using ALPN h2, http/1.1")
+
 		tlsConfig.NextProtos = []string{"h2", "http/1.1"}
 	}
 

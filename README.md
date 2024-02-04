@@ -17,6 +17,7 @@ Simplified version of [`curl`](https://curl.se/) written in Go.
     * [Custom DNS servers](#dns)
     * [Experimental flags](#exp)
         * [Post-quantum cryptography](#pq)
+    * [WebSocket support](#websocket)
 * [All command-line arguments](#allcmdarguments)
 
 <a id="why"></a>
@@ -88,6 +89,9 @@ Also, you can use some new stuff that is not supported by curl.
   [below](#dns).
 * `gocurl --experiment=pq https://pq.cloudflareresearch.com/` enables
   post-quantum cryptography support for the request. More on this [below](#pq).
+* `gocurl wss://httpbin.agrd.workers.dev/ws` sends a WS upgrade request.
+* `gocurl -d "test message" wss://httpbin.agrd.workers.dev/ws` establishes a WS
+  connection, sends the first message through it and reads the response.
 
 <a id="ech"></a>
 
@@ -202,6 +206,19 @@ gocurl \
       --dns-servers sdns://AQIAAAAAAAAAFDE3Ni4xMDMuMTMwLjEzMDo1NDQzINErR_JS3PLCu_iZEIbq95zkSV2LFsigxDIuUso_OQhzIjIuZG5zY3J5cHQuZGVmYXVsdC5uczEuYWRndWFyZC5jb20 \
       https://example.org/
   ```
+
+<a id="websocket"></a>
+
+#### WebSocket support
+
+`gocurl` provides some initial support for WebSocket protocol. It may be
+extended in the future, see the corresponding [Github issue][wsissue].
+
+* `gocurl wss://httpbin.agrd.workers.dev/ws` sends a WS upgrade request.
+* `gocurl -d "test message" wss://httpbin.agrd.workers.dev/ws` establishes a WS
+  connection, sends the first message through it and reads the response.
+
+[wsissue]: https://github.com/ameshkov/gocurl/issues/17
 
 <a id="exp"></a>
 

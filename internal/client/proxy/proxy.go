@@ -44,7 +44,6 @@ func (d *Dialer) Dial(network, addr string) (conn net.Conn, err error) {
 	}
 
 	return conn, err
-
 }
 
 // createProxyDialer creates a proxy dialer from the specified URL.

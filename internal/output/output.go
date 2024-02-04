@@ -45,21 +45,21 @@ func NewOutput(path string, verbose bool) (o *Output, err error) {
 }
 
 // Write writes received data to the output path (or stdout if not specified).
-func (o *Output) Write(resp *http.Response, cfg *config.Config) {
+func (o *Output) Write(resp *http.Response, responseBody io.Reader, cfg *config.Config) {
 	var err error
 
 	if cfg.OutputJSON {
 		var b []byte
-		b, err = responseToJSON(resp)
+		b, err = responseToJSON(resp, responseBody)
 		if err != nil {
 			panic(err)
 		}
 
 		_, err = o.receivedDataFile.Write(b)
-	} else if cfg.Head {
+	} else if responseBody == nil {
 		_, err = o.receivedDataFile.WriteString(responseToString(resp))
 	} else {
-		_, err = io.Copy(o.receivedDataFile, resp.Body)
+		_, err = io.Copy(o.receivedDataFile, responseBody)
 	}
 
 	if err != nil {
@@ -222,8 +222,8 @@ func stateToTLSState(state *tls.ConnectionState) (s *TLSState) {
 }
 
 // responseToJSON transforms response data to JSON format.
-func responseToJSON(resp *http.Response) (b []byte, err error) {
-	body, err := io.ReadAll(resp.Body)
+func responseToJSON(resp *http.Response, responseBody io.Reader) (b []byte, err error) {
+	body, err := io.ReadAll(responseBody)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read response body: %w", err)
 	}
