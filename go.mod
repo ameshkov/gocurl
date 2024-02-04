@@ -6,6 +6,7 @@ require (
 	github.com/AdguardTeam/dnsproxy v0.55.0
 	github.com/AdguardTeam/golibs v0.16.2
 	github.com/ameshkov/cfcrypto v0.0.0-20230920085957-6533e339cf20
+	github.com/gobwas/ws v1.2.1
 	github.com/jessevdk/go-flags v1.5.0
 	github.com/miekg/dns v1.1.56
 	github.com/quic-go/quic-go v0.38.1
@@ -22,6 +23,8 @@ require (
 	github.com/cloudflare/circl v1.3.3 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/go-task/slim-sprig v0.0.0-20230315185526-52ccab3ef572 // indirect
+	github.com/gobwas/httphead v0.1.0 // indirect
+	github.com/gobwas/pool v0.2.1 // indirect
 	github.com/golang/mock v1.6.0 // indirect
 	github.com/google/pprof v0.0.0-20230912144702-c363fe2c2ed8 // indirect
 	github.com/onsi/ginkgo/v2 v2.12.1 // indirect

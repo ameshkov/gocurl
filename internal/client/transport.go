@@ -13,6 +13,14 @@ import (
 	"golang.org/x/net/http2"
 )
 
+// Transport is the interface that's used for sending/receiving HTTP requests.
+type Transport interface {
+	http.RoundTripper
+
+	// Conn returns the last established connection using this transport.
+	Conn() (conn net.Conn)
+}
+
 // transport is a wrapper over regular http.RoundTripper that is used to add
 // additional logic on top of RoundTrip.
 type transport struct {
@@ -21,7 +29,12 @@ type transport struct {
 }
 
 // type check
-var _ http.RoundTripper = (*transport)(nil)
+var _ Transport = (*transport)(nil)
+
+// Conn returns the last established connection using this transport.
+func (t *transport) Conn() (conn net.Conn) {
+	return t.d.conn
+}
 
 // RoundTrip implements the http.RoundTripper interface for *transport.
 //
@@ -49,7 +62,7 @@ func (t *transport) RoundTrip(r *http.Request) (resp *http.Response, err error) 
 
 // NewTransport creates a new http.RoundTripper that will be used for making
 // the request.
-func NewTransport(cfg *config.Config, out *output.Output) (rt http.RoundTripper, err error) {
+func NewTransport(cfg *config.Config, out *output.Output) (rt Transport, err error) {
 	d, err := newDialer(cfg, out)
 	if err != nil {
 		return nil, err

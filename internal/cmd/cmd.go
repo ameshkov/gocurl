@@ -2,12 +2,15 @@
 package cmd
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"io"
+	"net/http"
 	"os"
 
 	"github.com/ameshkov/gocurl/internal/client"
+	"github.com/ameshkov/gocurl/internal/client/websocket"
 	"github.com/ameshkov/gocurl/internal/config"
 	"github.com/ameshkov/gocurl/internal/output"
 	"github.com/ameshkov/gocurl/internal/version"
@@ -72,13 +75,45 @@ func Main() {
 		os.Exit(1)
 	}
 
-	out.DebugResponse(resp)
-
 	defer func(body io.ReadCloser) {
 		_ = body.Close()
 	}(resp.Body)
 
-	// TODO(ameshkov): close transport and all the connection that were used.
+	// Response body is only written when we're sure that it is there.
+	var responseBody io.Reader
+	if resp.ContentLength > 0 ||
+		len(resp.TransferEncoding) > 0 ||
+		resp.Header.Get("Connection") == "close" {
+		responseBody = resp.Body
+	}
 
-	out.Write(resp, cfg)
+	if req.Method == http.MethodGet {
+		responseBody = nil
+	}
+
+	out.DebugResponse(resp)
+
+	// WebSocket is processed differently. If request body is supplied with the
+	// "data" command-line argument, it is sent as a text frame, and then it
+	// waits until the response comes from the server.
+	if websocket.IsWebSocketResponse(resp) {
+		wsConn := websocket.NewWebSocket(transport.Conn(), out)
+		defer func() {
+			_ = wsConn.Close()
+		}()
+
+		if cfg.Data != "" {
+			_, wsErr := wsConn.Write([]byte(cfg.Data))
+			if wsErr == nil {
+				var b []byte
+				b, wsErr = io.ReadAll(wsConn)
+				if wsErr == nil {
+					responseBody = io.NopCloser(bytes.NewReader(b))
+				}
+			}
+		}
+	}
+
+	// Write the response contents to the output.
+	out.Write(resp, responseBody, cfg)
 }
