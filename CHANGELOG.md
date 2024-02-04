@@ -11,14 +11,22 @@ adheres to [Semantic Versioning][semver].
 
 ## [Unreleased]
 
+[unreleased]: https://github.com/ameshkov/gocurl/compare/v1.4.0...HEAD
+
+## [1.4.0] - 2024-02-24
+
 ### Added
 
 * Added initial WebSocket support. `gocurl` now supports `ws://` and `wss://`
   URLs. `-d` can be used to specify initial data to send.  ([#17][#17])
 
-[#15]: https://github.com/ameshkov/gocurl/issues/15
+[#17]: https://github.com/ameshkov/gocurl/issues/17
 
-[unreleased]: https://github.com/ameshkov/gocurl/compare/v1.3.0...HEAD
+[See changes][1.4.0changes].
+
+[1.4.0changes]: https://github.com/ameshkov/gocurl/compare/v1.3.0...v1.4.0
+
+[1.4.0]: https://github.com/ameshkov/gocurl/releases/tag/v1.4.0
 
 ## [1.3.0] - 2023-09-23
 
