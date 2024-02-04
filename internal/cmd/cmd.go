@@ -86,8 +86,7 @@ func Main() {
 		resp.Header.Get("Connection") == "close" {
 		responseBody = resp.Body
 	}
-
-	if req.Method == http.MethodGet {
+	if req.Method == http.MethodHead {
 		responseBody = nil
 	}
 
