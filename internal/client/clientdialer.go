@@ -175,21 +175,21 @@ func createTLSConfig(cfg *config.Config, out *output.Output) (tlsConfig *tls.Con
 	}
 
 	if websocket.IsWebSocket(cfg.RequestURL) {
-		out.Debug("forcing ALPN http/1.1 as this is a WebSocket request")
+		out.Debug("Forcing ALPN http/1.1 as this is a WebSocket request")
 
 		// TODO(ameshkov): Add H2 when it supports WebSocket: https://github.com/golang/go/issues/49918
 		// TODO(ameshkov): Add H3 when it supports WebSocket
 		tlsConfig.NextProtos = []string{"http/1.1"}
 	} else if cfg.ForceHTTP11 {
-		out.Debug("forcing ALPN http/1.1")
+		out.Debug("Forcing ALPN http/1.1")
 
 		tlsConfig.NextProtos = []string{"http/1.1"}
 	} else if cfg.ForceHTTP2 {
-		out.Debug("forcing ALPN h2")
+		out.Debug("Forcing ALPN h2")
 
 		tlsConfig.NextProtos = []string{"h2"}
 	} else if cfg.ForceHTTP3 {
-		out.Debug("forcing ALPN h3")
+		out.Debug("Forcing ALPN h3")
 
 		tlsConfig.NextProtos = []string{"h3"}
 	}
