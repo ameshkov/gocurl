@@ -52,7 +52,7 @@ func (d *Direct) Dial(network, addr string) (conn net.Conn, err error) {
 		return nil, err
 	}
 
-	if _, ok := conn.(net.PacketConn); ok {
+	if _, ok := conn.(*net.UDPConn); ok {
 		return &udpConn{Conn: conn}, nil
 	}
 

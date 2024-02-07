@@ -15,6 +15,8 @@ adheres to [Semantic Versioning][semver].
 
 * Fixed a bug introduced in v1.4.0 with `gocurl` not printing the response body
   when the protocol is HTTP/2 or HTTP/3.  ([#26][#26])
+* Fixed unnecessary warning `connection doesn't allow setting of receive buffer
+  size` when HTTP/3 is used.
 
 [#26]: https://github.com/ameshkov/gocurl/issues/26
 
