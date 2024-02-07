@@ -73,6 +73,14 @@ type Config struct {
 	// the host name).
 	Resolve map[string][]net.IP
 
+	// IPv4 if configured forces usage of IP4 addresses only when doing DNS
+	// resolution.
+	IPv4 bool
+
+	// IPv6 if configured forces usage of IP4 addresses only when doing DNS
+	// resolution.
+	IPv6 bool
+
 	// DNSServers is a list of upstream DNS servers that will be used for
 	// resolving hostnames.
 	DNSServers []upstream.Upstream
@@ -148,6 +156,8 @@ func ParseConfig() (cfg *Config, err error) {
 		ForceHTTP2:  opts.HTTPv2,
 		ForceHTTP3:  opts.HTTPv3,
 		ECH:         opts.ECH,
+		IPv4:        opts.IPv4,
+		IPv6:        opts.IPv6,
 		RawOptions:  opts,
 	}
 

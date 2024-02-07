@@ -255,40 +255,61 @@ Usage:
   gocurl [OPTIONS]
 
 Application Options:
-      --url=<URL>                                           URL the request will be made to. Can be specified without any flags.
+      --url=<URL>                                           URL the request will be made to. Can be
+                                                            specified without any flags.
   -X, --request=<method>                                    HTTP method. GET by default.
-  -d, --data=<data>                                         Sends the specified data to the HTTP server using content type
+  -d, --data=<data>                                         Sends the specified data to the HTTP
+                                                            server using content type
                                                             application/x-www-form-urlencoded.
-  -H, --header=                                             Extra header to include in the request. Can be specified multiple
-                                                            times.
-  -x, --proxy=[protocol://username:password@]host[:port]    Use the specified proxy. The proxy string can be specified with a
+  -H, --header=                                             Extra header to include in the request.
+                                                            Can be specified multiple times.
+  -x, --proxy=[protocol://username:password@]host[:port]    Use the specified proxy. The proxy
+                                                            string can be specified with a
                                                             protocol:// prefix.
-      --connect-to=<HOST1:PORT1:HOST2:PORT2>                For a request to the given HOST1:PORT1 pair, connect to HOST2:PORT2
-                                                            instead. Can be specified multiple times.
+      --connect-to=<HOST1:PORT1:HOST2:PORT2>                For a request to the given HOST1:PORT1
+                                                            pair, connect to HOST2:PORT2 instead.
+                                                            Can be specified multiple times.
   -I, --head                                                Fetch the headers only.
-  -k, --insecure                                            Disables TLS verification of the connection.
+  -k, --insecure                                            Disables TLS verification of the
+                                                            connection.
       --tlsv1.3                                             Forces gocurl to use TLS v1.3.
       --tlsv1.2                                             Forces gocurl to use TLS v1.2.
       --http1.1                                             Forces gocurl to use HTTP v1.1.
       --http2                                               Forces gocurl to use HTTP v2.
       --http3                                               Forces gocurl to use HTTP v3.
       --ech                                                 Enables ECH support for the request.
-      --echconfig=<base64-encoded data>                     ECH configuration to use for this request. Implicitly enables --ech
-                                                            when specified.
-      --dns-servers=<DNSADDR1,DNSADDR2>                     DNS servers to use when making the request. Supports encrypted DNS:
+      --echconfig=<base64-encoded data>                     ECH configuration to use for this
+                                                            request. Implicitly enables --ech when
+                                                            specified.
+  -4, --ipv4                                                This option tells gocurl to use IPv4
+                                                            addresses only when resolving host
+                                                            names.
+  -6, --ipv6                                                This option tells gocurl to use IPv6
+                                                            addresses only when resolving host
+                                                            names.
+      --dns-servers=<DNSADDR1,DNSADDR2>                     DNS servers to use when making the
+                                                            request. Supports encrypted DNS:
                                                             tls://, https://, quic://, sdns://
-      --resolve=<[+]host:port:addr[,addr]...>               Provide a custom address for a specific host. port is ignored by
-                                                            gocurl. '*' can be used instead of the host name. Can be specified
-                                                            multiple times.
-      --tls-split-hello=<CHUNKSIZE:DELAY>                   An option that allows splitting TLS ClientHello in two parts in
-                                                            order to avoid common DPI systems detecting TLS. CHUNKSIZE is the
-                                                            size of the first bytes before ClientHello is split, DELAY is delay
-                                                            in milliseconds before sending the second part.
-      --json-output                                         Makes gocurl write machine-readable output in JSON format.
-  -o, --output=<file>                                       Defines where to write the received data. If not set, gocurl will
-                                                            write everything to stdout.
-      --experiment=<name[:value]>                           Allows enabling experimental options. See the documentation for
-                                                            available options. Can be specified multiple times.
+      --resolve=<[+]host:port:addr[,addr]...>               Provide a custom address for a specific
+                                                            host. port is ignored by gocurl. '*'
+                                                            can be used instead of the host name.
+                                                            Can be specified multiple times.
+      --tls-split-hello=<CHUNKSIZE:DELAY>                   An option that allows splitting TLS
+                                                            ClientHello in two parts in order to
+                                                            avoid common DPI systems detecting TLS.
+                                                            CHUNKSIZE is the size of the first
+                                                            bytes before ClientHello is split,
+                                                            DELAY is delay in milliseconds before
+                                                            sending the second part.
+      --json-output                                         Makes gocurl write machine-readable
+                                                            output in JSON format.
+  -o, --output=<file>                                       Defines where to write the received
+                                                            data. If not set, gocurl will write
+                                                            everything to stdout.
+      --experiment=<name[:value]>                           Allows enabling experimental options.
+                                                            See the documentation for available
+                                                            options. Can be specified multiple
+                                                            times.
   -v, --verbose                                             Verbose output (optional).
 
 Help Options:

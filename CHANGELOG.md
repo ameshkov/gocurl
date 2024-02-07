@@ -11,12 +11,18 @@ adheres to [Semantic Versioning][semver].
 
 ## [Unreleased]
 
+### Added
+
+* Added support for `--ipv4` and `--ipv6` arguments.  ([#25][#25])
+
 ### Fixed
 
 * Fixed a bug introduced in v1.4.0 with `gocurl` not printing the response body
   when the protocol is HTTP/2 or HTTP/3.  ([#26][#26])
 * Fixed unnecessary warning `connection doesn't allow setting of receive buffer
   size` when HTTP/3 is used.
+
+[#25]: https://github.com/ameshkov/gocurl/issues/25
 
 [#26]: https://github.com/ameshkov/gocurl/issues/26
 

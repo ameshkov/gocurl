@@ -63,6 +63,14 @@ type Options struct {
 	// configuration using DNS.
 	ECHConfig string `long:"echconfig" description:"ECH configuration to use for this request. Implicitly enables --ech when specified." value-name:"<base64-encoded data>"`
 
+	// IPv4 if configured forces usage of IP4 addresses only when doing DNS
+	// resolution.
+	IPv4 bool `short:"4" long:"ipv4" description:"This option tells gocurl to use IPv4 addresses only when resolving host names." optional:"yes" optional-value:"true"`
+
+	// IPv6 if configured forces usage of IP4 addresses only when doing DNS
+	// resolution.
+	IPv6 bool `short:"6" long:"ipv6" description:"This option tells gocurl to use IPv6 addresses only when resolving host names." optional:"yes" optional-value:"true"`
+
 	// DNSServers is a list of DNS servers that will be used to resolve
 	// hostnames when making a request.  Encrypted DNS addresses or DNS stamps
 	// can be used here.

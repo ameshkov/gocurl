@@ -79,7 +79,17 @@ func (r *Resolver) LookupHost(hostname string) (ipAddresses []net.IP, err error)
 
 	var errs []error
 
-	for _, qType := range []uint16{dns.TypeA, dns.TypeAAAA} {
+	var qTypes []uint16
+	switch {
+	case r.cfg.IPv4:
+		qTypes = []uint16{dns.TypeA}
+	case r.cfg.IPv6:
+		qTypes = []uint16{dns.TypeAAAA}
+	default:
+		qTypes = []uint16{dns.TypeA, dns.TypeAAAA}
+	}
+
+	for _, qType := range qTypes {
 		msg := newMsg(hostname, qType)
 
 		resp, u, dnsErr := dnsLookupAll(msg, r.upstreams)
