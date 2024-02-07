@@ -81,7 +81,8 @@ func Main() {
 
 	// Response body is only written when we're sure that it is there.
 	var responseBody io.Reader
-	if resp.ContentLength > 0 ||
+	if resp.ProtoMajor >= 2 ||
+		resp.ContentLength > 0 ||
 		len(resp.TransferEncoding) > 0 ||
 		resp.Header.Get("Connection") == "close" {
 		responseBody = resp.Body

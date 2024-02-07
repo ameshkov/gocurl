@@ -11,6 +11,13 @@ adheres to [Semantic Versioning][semver].
 
 ## [Unreleased]
 
+### Fixed
+
+* Fixed a bug introduced in v1.4.0 with `gocurl` not printing the response body
+  when the protocol is HTTP/2 or HTTP/3.  ([#26][#26])
+
+[#26]: https://github.com/ameshkov/gocurl/issues/26
+
 [unreleased]: https://github.com/ameshkov/gocurl/compare/v1.4.0...HEAD
 
 ## [1.4.0] - 2024-02-24
