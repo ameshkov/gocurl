@@ -43,8 +43,15 @@ Unfortunately, curl is a bit too huge for that now.
     ```shell
     go install github.com/ameshkov/gocurl@latest
     ```
-* You can get a binary from
-  the [releases page](https://github.com/ameshkov/gocurl/releases).
+* You can use [a Docker image][dockerimage]:
+    ```shell
+    docker run --rm ghcr.io/ameshkov/gocurl --help
+    ```
+* You can get a binary from the [releases page][releases].
+
+[dockerimage]: https://github.com/ameshkov/gocurl/pkgs/container/gocurl
+
+[releases]: https://github.com/ameshkov/gocurl/releases
 
 <a id="howtouse"></a>
 
@@ -70,11 +77,6 @@ Use it the same way you use original curl.
 * `gocurl -I --resolve="httpbin.agrd.workers.dev:443:172.67.152.85"
   https://httpbin.agrd.workers.dev/head` resolve the hostname to the specified
   IP address. Note, that unlike `curl`, `gocurl` ignores port in this option.
-
-Alternatively, you can use the Docker image:
-```shell
-docker run --rm ghcr.io/ameshkov/gocurl --help
-```
 
 <a id="newstuff"></a>
 

@@ -11,10 +11,14 @@ adheres to [Semantic Versioning][semver].
 
 ## [Unreleased]
 
+[unreleased]: https://github.com/ameshkov/gocurl/compare/v1.4.1...HEAD
+
+## [1.4.1] - 2024-02-07
+
 ### Added
 
 * Added support for `--ipv4` and `--ipv6` arguments.  ([#25][#25])
-* Added Docker image for `gocurl`.
+* Added [a Docker image][dockerimage] for `gocurl`.
 
 ### Fixed
 
@@ -23,26 +27,32 @@ adheres to [Semantic Versioning][semver].
 * Fixed unnecessary warning `connection doesn't allow setting of receive buffer
   size` when HTTP/3 is used.
 
+[See changes][1.4.1changes].
+
+[1.4.1changes]: https://github.com/ameshkov/gocurl/compare/v1.4.0...v1.4.1
+
+[1.4.1]: https://github.com/ameshkov/gocurl/releases/tag/v1.4.1
+
+[dockerimage]: https://github.com/ameshkov/gocurl/pkgs/container/gocurl
+
 [#25]: https://github.com/ameshkov/gocurl/issues/25
 
 [#26]: https://github.com/ameshkov/gocurl/issues/26
 
-[unreleased]: https://github.com/ameshkov/gocurl/compare/v1.4.0...HEAD
-
-## [1.4.0] - 2024-02-24
+## [1.4.0] - 2024-02-04
 
 ### Added
 
 * Added initial WebSocket support. `gocurl` now supports `ws://` and `wss://`
   URLs. `-d` can be used to specify initial data to send.  ([#17][#17])
 
-[#17]: https://github.com/ameshkov/gocurl/issues/17
-
 [See changes][1.4.0changes].
 
 [1.4.0changes]: https://github.com/ameshkov/gocurl/compare/v1.3.0...v1.4.0
 
 [1.4.0]: https://github.com/ameshkov/gocurl/releases/tag/v1.4.0
+
+[#17]: https://github.com/ameshkov/gocurl/issues/17
 
 ## [1.3.0] - 2023-09-23
 
@@ -61,13 +71,13 @@ adheres to [Semantic Versioning][semver].
 
 [See changes][1.3.0changes].
 
-[#14]: https://github.com/ameshkov/gocurl/issues/14
-
-[#15]: https://github.com/ameshkov/gocurl/issues/15
-
 [1.3.0changes]: https://github.com/ameshkov/gocurl/compare/v1.2.0...v1.3.0
 
 [1.3.0]: https://github.com/ameshkov/gocurl/releases/tag/v1.3.0
+
+[#14]: https://github.com/ameshkov/gocurl/issues/14
+
+[#15]: https://github.com/ameshkov/gocurl/issues/15
 
 ## [1.2.0] - 2023-09-22
 
@@ -85,13 +95,13 @@ adheres to [Semantic Versioning][semver].
 
 [See changes][1.2.0changes].
 
-[#6]: https://github.com/ameshkov/gocurl/issues/6
-
-[#8]: https://github.com/ameshkov/gocurl/issues/8
-
 [1.2.0changes]: https://github.com/ameshkov/gocurl/compare/v1.1.0...v1.2.0
 
 [1.2.0]: https://github.com/ameshkov/gocurl/releases/tag/v1.2.0
+
+[#6]: https://github.com/ameshkov/gocurl/issues/6
+
+[#8]: https://github.com/ameshkov/gocurl/issues/8
 
 ## [1.1.0] - 2023-09-21
 
@@ -105,13 +115,13 @@ adheres to [Semantic Versioning][semver].
 
 [See changes][1.1.0changes].
 
-[#3]: https://github.com/ameshkov/gocurl/issues/3
-
-[#5]: https://github.com/ameshkov/gocurl/issues/5
-
 [1.1.0changes]: https://github.com/ameshkov/gocurl/compare/v1.0.6...v1.1.0
 
 [1.1.0]: https://github.com/ameshkov/gocurl/releases/tag/v1.1.0
+
+[#3]: https://github.com/ameshkov/gocurl/issues/3
+
+[#5]: https://github.com/ameshkov/gocurl/issues/5
 
 ## [1.0.6] - 2023-09-17
 
@@ -121,11 +131,11 @@ adheres to [Semantic Versioning][semver].
 
 [See changes][1.0.6changes].
 
-[#1]: https://github.com/ameshkov/gocurl/issues/1
-
 [1.0.6changes]: https://github.com/ameshkov/gocurl/compare/v1.0.5...v1.0.6
 
 [1.0.6]: https://github.com/ameshkov/gocurl/releases/tag/v1.0.6
+
+[#1]: https://github.com/ameshkov/gocurl/issues/1
 
 ## [1.0.5] - 2023-09-15
 
