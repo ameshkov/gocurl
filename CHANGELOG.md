@@ -14,6 +14,7 @@ adheres to [Semantic Versioning][semver].
 ### Added
 
 * Added support for `--ipv4` and `--ipv6` arguments.  ([#25][#25])
+* Added Docker image for `gocurl`.
 
 ### Fixed
 

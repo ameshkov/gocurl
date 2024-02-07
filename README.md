@@ -71,6 +71,11 @@ Use it the same way you use original curl.
   https://httpbin.agrd.workers.dev/head` resolve the hostname to the specified
   IP address. Note, that unlike `curl`, `gocurl` ignores port in this option.
 
+Alternatively, you can use the Docker image:
+```shell
+docker run --rm ghcr.io/ameshkov/gocurl --help
+```
+
 <a id="newstuff"></a>
 
 ### New stuff

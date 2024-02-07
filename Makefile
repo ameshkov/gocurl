@@ -17,7 +17,7 @@ endif
 default: build
 
 build: clean
-	go build -ldflags "-X $(VERSIONPKG).version=$(VERSION)"
+	CGO_ENABLED=0 go build -ldflags "-X $(VERSIONPKG).version=$(VERSION)" -o $(NAME)
 
 release: check-env-release
 	mkdir -p $(BUILDDIR)
