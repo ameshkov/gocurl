@@ -72,9 +72,9 @@ Use it the same way you use original curl.
 * `gocurl -x socks5://user:pass@host:port https://httpbin.agrd.workers.dev/get`
   use a proxy server.
 * `gocurl -I --tlsv1.3 https://tls-v1-2.badssl.com:1012/` force use TLS v1.3.
-* `gocurl -I --connect-to="httpbin.agrd.workers.dev:443:172.67.152.85:443"
+* `gocurl -I --connect-to "httpbin.agrd.workers.dev:443:172.67.152.85:443"
   https://httpbin.agrd.workers.dev/head` connect to the specified IP addresses.
-* `gocurl -I --resolve="httpbin.agrd.workers.dev:443:172.67.152.85"
+* `gocurl -I --resolve "httpbin.agrd.workers.dev:443:172.67.152.85"
   https://httpbin.agrd.workers.dev/head` resolve the hostname to the specified
   IP address. Note, that unlike `curl`, `gocurl` ignores port in this option.
 
@@ -86,15 +86,15 @@ Also, you can use some new stuff that is not supported by curl.
 
 * `gocurl --json-output https://httpbin.agrd.workers.dev/get` write output in
   machine-readable format (JSON).
-* `gocurl --tls-split-hello=5:50 https://httpbin.agrd.workers.dev/get` split
+* `gocurl --tls-split-hello 5:50 https://httpbin.agrd.workers.dev/get` split
   TLS ClientHello in two parts and make a 50ms delay after sending the first
   part.
 * `gocurl -v --ech https://crypto.cloudflare.com/cdn-cgi/trace` enables support
   for ECH (Encrypted Client Hello) for the request. More on this [below](#ech).
-* `gocurl --dns-servers="tls://dns.google" https://httpbin.agrd.workers.dev/get`
+* `gocurl --dns-servers "tls://dns.google" https://httpbin.agrd.workers.dev/get`
   uses custom DNS-over-TLS server to resolve hostnames. More on this
   [below](#dns).
-* `gocurl --experiment=pq https://pq.cloudflareresearch.com/` enables
+* `gocurl --experiment pq https://pq.cloudflareresearch.com/` enables
   post-quantum cryptography support for the request. More on this [below](#pq).
 * `gocurl wss://httpbin.agrd.workers.dev/ws` sends a WS upgrade request.
 * `gocurl -d "test message" wss://httpbin.agrd.workers.dev/ws` establishes a WS
@@ -128,7 +128,7 @@ base64-encoded format as used by the SVCB record:
 
 # You can now pass it to gocurl.
 gocurl -v \
-  --echconfig="AEX+DQBBvgAgACARWS42g5NmDZo5pIpTWSwHzTwzdRKPdUW732QbyUeyDQAEAAEAAQASY2xvdWRmbGFyZS1lY2guY29tAAA=" \
+  --echconfig "AEX+DQBBvgAgACARWS42g5NmDZo5pIpTWSwHzTwzdRKPdUW732QbyUeyDQAEAAEAAQASY2xvdWRmbGFyZS1lY2guY29tAAA=" \
   https://crypto.cloudflare.com/cdn-cgi/trace
 ```
 
@@ -152,8 +152,8 @@ and use `crypto.cloudflare.com` as a client-facing server for that.
 
 ```shell
 gocurl -v \
-  --connect-to="cloudflare.com:443:crypto.cloudflare.com:443" \
-  --echconfig="AEX+DQBBvgAgACARWS42g5NmDZo5pIpTWSwHzTwzdRKPdUW732QbyUeyDQAEAAEAAQASY2xvdWRmbGFyZS1lY2guY29tAAA=" \
+  --connect-to "cloudflare.com:443:crypto.cloudflare.com:443" \
+  --echconfig "AEX+DQBBvgAgACARWS42g5NmDZo5pIpTWSwHzTwzdRKPdUW732QbyUeyDQAEAAEAAQASY2xvdWRmbGFyZS1lY2guY29tAAA=" \
   https://cloudflare.com/cdn-cgi/trace
 ```
 
@@ -187,24 +187,24 @@ them one by one until it receives a response or until all of them fail:
 
 ```shell
 gocurl \
-  --dns-servers="tls://dns.adguard-dns.com,tls://dns.google" \
+  --dns-servers "tls://dns.adguard-dns.com,tls://dns.google" \
   https://example.org/
 
 ```
 
 * DNS-over-QUIC
   ```shell
-  gocurl --dns-servers="quic://dns.adguard-dns.com" https://example.org/
+  gocurl --dns-servers "quic://dns.adguard-dns.com" https://example.org/
   ```
 
 * DNS-over-HTTPS
   ```shell
-  gocurl --dns-servers="https://dns.adguard-dns.com/dns-query" https://example.org/
+  gocurl --dns-servers "https://dns.adguard-dns.com/dns-query" https://example.org/
   ```
 
 * DNS-over-TLS
   ```shell
-  gocurl --dns-servers="tls://dns.adguard-dns.com" https://example.org/
+  gocurl --dns-servers "tls://dns.adguard-dns.com" https://example.org/
   ```
 
 * DNSCrypt
@@ -248,7 +248,7 @@ threat of quantum computers. You can learn more about it from Cloudflare's
 Note, that it is not available for `--http3` at the moment.
 
 ```shell
-gocurl --experiment=pq https://pq.cloudflareresearch.com/
+gocurl --experiment pq https://pq.cloudflareresearch.com/
 ```
 
 [postquantum]: https://blog.cloudflare.com/post-quantum-for-all/
