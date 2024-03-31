@@ -12,6 +12,7 @@ adheres to [Semantic Versioning][semver].
 ## [Unreleased]
 
 * Added support for the `--tls-max` argument.
+* Added support for the `--ciphers` argument.
 
 [unreleased]: https://github.com/ameshkov/gocurl/compare/v1.4.1...HEAD
 

@@ -47,6 +47,11 @@ type Options struct {
 	// TLSMax specifies the maximum supported TLS version.
 	TLSMax string `long:"tls-max" description:"(TLS) VERSION defines maximum supported TLS version. Can be 1.2 or 1.3. The minimum acceptable version is set by tlsv1.2 or tlsv1.3." value-name:"<VERSION>"`
 
+	// TLSCiphers specifies which ciphers to use in the connection, see
+	// https://go.dev/src/crypto/tls/cipher_suites.go for the full list of
+	// available ciphers.
+	TLSCiphers string `long:"ciphers" description:"Specifies which ciphers to use in the connection, see https://go.dev/src/crypto/tls/cipher_suites.go for the full list of available ciphers." value-name:"<space-separated list of ciphers>"`
+
 	// HTTPv11 forces to use HTTP v1.1.
 	HTTPv11 bool `long:"http1.1" description:"Forces gocurl to use HTTP v1.1." optional:"yes" optional-value:"true"`
 

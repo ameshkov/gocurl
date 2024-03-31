@@ -290,6 +290,12 @@ Application Options:
                                                             or 1.3. The minimum acceptable
                                                             version is set by tlsv1.2 or
                                                             tlsv1.3.
+      --ciphers=<space-separated list of ciphers>           Specifies which ciphers to use in
+                                                            the connection, see
+                                                            https://go.dev/src/crypto/tls/ciph-
+
+                                                            er_suites.go for the full list of
+                                                            available ciphers.
       --http1.1                                             Forces gocurl to use HTTP v1.1.
       --http2                                               Forces gocurl to use HTTP v2.
       --http3                                               Forces gocurl to use HTTP v3.

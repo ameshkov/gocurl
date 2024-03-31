@@ -50,6 +50,10 @@ type Config struct {
 	// TLSMaxVersion is a maximum supported TLS version.
 	TLSMaxVersion uint16
 
+	// TLSCiphers is a list of ciphers that the client will send in the TLS
+	// ClientHello.
+	TLSCiphers []uint16
+
 	// ForceHTTP11 forces using HTTP/1.1.
 	ForceHTTP11 bool
 
@@ -217,6 +221,21 @@ func ParseConfig() (cfg *Config, err error) {
 		cfg.TLSMaxVersion = tls.VersionTLS13
 	}
 
+	if opts.TLSCiphers != "" {
+		cipherNames := strings.Split(opts.TLSCiphers, " ")
+		cfg.TLSCiphers = []uint16{}
+
+		for _, cipherName := range cipherNames {
+			cipher := getCipherSuiteByName(cipherName)
+
+			if cipher == 0 {
+				return nil, fmt.Errorf("cipher %s not found", cipherName)
+			}
+
+			cfg.TLSCiphers = append(cfg.TLSCiphers, cipher)
+		}
+	}
+
 	if opts.TLSSplitHello != "" {
 		cfg.TLSSplitChunkSize, cfg.TLSSplitDelay, err = parseTLSSplitHello(opts.TLSSplitHello)
 		if err != nil {
@@ -242,6 +261,24 @@ func ParseConfig() (cfg *Config, err error) {
 	}
 
 	return cfg, nil
+}
+
+// getCipherSuiteByName tries to get the cipher suite by its name. Returns 0
+// if no matching cipher found.
+func getCipherSuiteByName(cipherName string) (cipher uint16) {
+	for _, c := range tls.CipherSuites() {
+		if c.Name == cipherName {
+			return c.ID
+		}
+	}
+
+	for _, c := range tls.InsecureCipherSuites() {
+		if c.Name == cipherName {
+			return c.ID
+		}
+	}
+
+	return 0
 }
 
 // parseConnectTo creates a "connect-to" map from the string representation.
