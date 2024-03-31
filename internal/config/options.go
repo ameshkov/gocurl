@@ -39,10 +39,13 @@ type Options struct {
 	Insecure bool `short:"k" long:"insecure" description:"Disables TLS verification of the connection." optional:"yes" optional-value:"true"`
 
 	// TLSv13 forces to use TLS v1.3.
-	TLSv13 bool `long:"tlsv1.3" description:"Forces gocurl to use TLS v1.3." optional:"yes" optional-value:"true"`
+	TLSv13 bool `long:"tlsv1.3" description:"Forces gocurl to use TLS v1.3 or newer." optional:"yes" optional-value:"true"`
 
 	// TLSv13 forces to use TLS v1.2.
-	TLSv12 bool `long:"tlsv1.2" description:"Forces gocurl to use TLS v1.2." optional:"yes" optional-value:"true"`
+	TLSv12 bool `long:"tlsv1.2" description:"Forces gocurl to use TLS v1.2 or newer." optional:"yes" optional-value:"true"`
+
+	// TLSMax specifies the maximum supported TLS version.
+	TLSMax string `long:"tls-max" description:"(TLS) VERSION defines maximum supported TLS version. Can be 1.2 or 1.3. The minimum acceptable version is set by tlsv1.2 or tlsv1.3." value-name:"<VERSION>"`
 
 	// HTTPv11 forces to use HTTP v1.1.
 	HTTPv11 bool `long:"http1.1" description:"Forces gocurl to use HTTP v1.1." optional:"yes" optional-value:"true"`

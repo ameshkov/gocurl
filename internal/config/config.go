@@ -137,6 +137,11 @@ func NewExperiment(str string) (e Experiment, err error) {
 
 // ParseConfig parses and validates os.Args and returns the final *Config
 // object.
+//
+// Disable gocyclo for ParseConfig as it's supposed to be a large function with
+// if conditions.
+//
+// nolint:gocyclo
 func ParseConfig() (cfg *Config, err error) {
 	opts, err := parseOptions()
 
@@ -204,6 +209,12 @@ func ParseConfig() (cfg *Config, err error) {
 
 	if opts.TLSv13 {
 		cfg.TLSMinVersion = tls.VersionTLS13
+	}
+
+	if opts.TLSMax == "1.2" {
+		cfg.TLSMaxVersion = tls.VersionTLS12
+	} else if opts.TLSMax == "1.3" {
+		cfg.TLSMaxVersion = tls.VersionTLS13
 	}
 
 	if opts.TLSSplitHello != "" {

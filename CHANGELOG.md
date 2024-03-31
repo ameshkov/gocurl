@@ -11,6 +11,8 @@ adheres to [Semantic Versioning][semver].
 
 ## [Unreleased]
 
+* Added support for the `--tls-max` argument.
+
 [unreleased]: https://github.com/ameshkov/gocurl/compare/v1.4.1...HEAD
 
 ## [1.4.1] - 2024-02-07

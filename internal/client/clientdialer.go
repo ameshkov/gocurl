@@ -170,6 +170,8 @@ func createTLSConfig(cfg *config.Config, out *output.Output) (tlsConfig *tls.Con
 		MaxVersion: cfg.TLSMaxVersion,
 	}
 
+	tls.CipherSuites()
+
 	if cfg.Insecure {
 		tlsConfig.InsecureSkipVerify = true
 	}
