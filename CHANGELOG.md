@@ -15,6 +15,10 @@ adheres to [Semantic Versioning][semver].
 
 * Added support for the `--tls-servername` argument.
 
+### Changed
+
+* Updated dependencies, now using newer versions of quic-go, dnsproxy, cfcrypto.
+
 [unreleased]: https://github.com/ameshkov/gocurl/compare/v1.4.2...HEAD
 
 ## [1.4.2] - 2024-03-31

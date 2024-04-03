@@ -209,7 +209,7 @@ func dnsLookupAll(m *dns.Msg, upstreams []upstream.Upstream) (resp *dns.Msg, u u
 		}
 	}
 
-	return nil, nil, errors.List("dns lookup", errs...)
+	return nil, nil, fmt.Errorf("dns lookup: %w", errors.Join(errs...))
 }
 
 // dnsLookup sends the query m over to DNS resolver addr and returns the
@@ -267,14 +267,14 @@ func rCodeToString(rCode int) (str string) {
 // getSystemResolvers returns a list of upstream.Upstream that were created
 // from system resolvers.
 func getSystemResolvers() (upstreams []upstream.Upstream, err error) {
-	sr, err := sysresolv.NewSystemResolvers(nil)
+	sr, err := sysresolv.NewSystemResolvers(nil, 53)
 	if err != nil {
 		return nil, err
 	}
 
 	addrs := sr.Addrs()
 	for _, addr := range addrs {
-		u, uErr := upstream.AddressToUpstream(addr, nil)
+		u, uErr := upstream.AddressToUpstream(addr.String(), nil)
 		if uErr != nil {
 			return nil, errors.Join(ErrInvalidResolver, uErr)
 		}
