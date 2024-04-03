@@ -54,6 +54,10 @@ type Config struct {
 	// ClientHello.
 	TLSCiphers []uint16
 
+	// TLSServerName allows to send a specified server name in the TLS
+	// ClientHello extension.
+	TLSServerName string
+
 	// ForceHTTP11 forces using HTTP/1.1.
 	ForceHTTP11 bool
 
@@ -154,20 +158,21 @@ func ParseConfig() (cfg *Config, err error) {
 	}
 
 	cfg = &Config{
-		Method:      opts.Method,
-		Head:        opts.Head,
-		Insecure:    opts.Insecure,
-		Data:        opts.Data,
-		OutputJSON:  opts.OutputJSON,
-		OutputPath:  opts.OutputPath,
-		Verbose:     opts.Verbose,
-		ForceHTTP11: opts.HTTPv11,
-		ForceHTTP2:  opts.HTTPv2,
-		ForceHTTP3:  opts.HTTPv3,
-		ECH:         opts.ECH,
-		IPv4:        opts.IPv4,
-		IPv6:        opts.IPv6,
-		RawOptions:  opts,
+		Method:        opts.Method,
+		Head:          opts.Head,
+		Insecure:      opts.Insecure,
+		Data:          opts.Data,
+		OutputJSON:    opts.OutputJSON,
+		OutputPath:    opts.OutputPath,
+		Verbose:       opts.Verbose,
+		ForceHTTP11:   opts.HTTPv11,
+		ForceHTTP2:    opts.HTTPv2,
+		ForceHTTP3:    opts.HTTPv3,
+		ECH:           opts.ECH,
+		IPv4:          opts.IPv4,
+		IPv6:          opts.IPv6,
+		TLSServerName: opts.TLSServerName,
+		RawOptions:    opts,
 	}
 
 	cfg.RequestURL, err = url.Parse(opts.URL)
@@ -219,6 +224,8 @@ func ParseConfig() (cfg *Config, err error) {
 		cfg.TLSMaxVersion = tls.VersionTLS12
 	} else if opts.TLSMax == "1.3" {
 		cfg.TLSMaxVersion = tls.VersionTLS13
+	} else if opts.TLSMax != "" {
+		return nil, fmt.Errorf("unsupported tls-max value: %s", opts.TLSMax)
 	}
 
 	if opts.TLSCiphers != "" {

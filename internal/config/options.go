@@ -52,6 +52,10 @@ type Options struct {
 	// available ciphers.
 	TLSCiphers string `long:"ciphers" description:"Specifies which ciphers to use in the connection, see https://go.dev/src/crypto/tls/cipher_suites.go for the full list of available ciphers." value-name:"<space-separated list of ciphers>"`
 
+	// TLSServerName allows to send a specified server name in the TLS
+	// ClientHello extension.
+	TLSServerName string `long:"tls-servername" description:"Specifies the server name that will be sent in TLS ClientHello" value-name:"<HOSTNAME>"`
+
 	// HTTPv11 forces to use HTTP v1.1.
 	HTTPv11 bool `long:"http1.1" description:"Forces gocurl to use HTTP v1.1." optional:"yes" optional-value:"true"`
 

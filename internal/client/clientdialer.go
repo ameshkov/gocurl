@@ -170,6 +170,12 @@ func createTLSConfig(cfg *config.Config, out *output.Output) (tlsConfig *tls.Con
 		MaxVersion: cfg.TLSMaxVersion,
 	}
 
+	if cfg.TLSServerName != "" {
+		out.Debug("Overriding the TLS server name: %s", cfg.TLSServerName)
+
+		tlsConfig.ServerName = cfg.TLSServerName
+	}
+
 	if len(cfg.TLSCiphers) > 0 {
 		tlsConfig.CipherSuites = cfg.TLSCiphers
 	}

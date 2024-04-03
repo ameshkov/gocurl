@@ -11,6 +11,10 @@ adheres to [Semantic Versioning][semver].
 
 ## [Unreleased]
 
+### Added
+
+* Added support for the `--tls-servername` argument.
+
 [unreleased]: https://github.com/ameshkov/gocurl/compare/v1.4.2...HEAD
 
 ## [1.4.2] - 2024-03-31
