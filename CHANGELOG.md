@@ -11,6 +11,10 @@ adheres to [Semantic Versioning][semver].
 
 ## [Unreleased]
 
+[unreleased]: https://github.com/ameshkov/gocurl/compare/v1.4.3...HEAD
+
+## [1.4.3] - 2024-06-04
+
 ### Added
 
 * Added support for the `--tls-servername` argument.
@@ -20,9 +24,13 @@ adheres to [Semantic Versioning][semver].
 * Use `http` as the default scheme.  ([#27][#27])
 * Updated dependencies, now using newer versions of quic-go, dnsproxy, cfcrypto.
 
-[#27]: https://github.com/ameshkov/gocurl/issues/27
+[See changes][1.4.3changes].
 
-[unreleased]: https://github.com/ameshkov/gocurl/compare/v1.4.2...HEAD
+[1.4.3changes]: https://github.com/ameshkov/gocurl/compare/v1.4.2...v1.4.3
+
+[1.4.3]: https://github.com/ameshkov/gocurl/releases/tag/v1.4.3
+
+[#27]: https://github.com/ameshkov/gocurl/issues/27
 
 ## [1.4.2] - 2024-03-31
 
