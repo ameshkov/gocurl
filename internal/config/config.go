@@ -180,6 +180,11 @@ func ParseConfig() (cfg *Config, err error) {
 		return nil, fmt.Errorf("invalid URL specified %s: %w", opts.URL, err)
 	}
 
+	if cfg.RequestURL.Scheme == "" {
+		// Use http scheme by default.
+		cfg.RequestURL.Scheme = "http"
+	}
+
 	if opts.ProxyURL != "" {
 		cfg.ProxyURL, err = url.Parse(opts.ProxyURL)
 		if err != nil {

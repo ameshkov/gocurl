@@ -17,7 +17,10 @@ adheres to [Semantic Versioning][semver].
 
 ### Changed
 
+* Use `http` as the default scheme.  ([#27][#27])
 * Updated dependencies, now using newer versions of quic-go, dnsproxy, cfcrypto.
+
+[#27]: https://github.com/ameshkov/gocurl/issues/27
 
 [unreleased]: https://github.com/ameshkov/gocurl/compare/v1.4.2...HEAD
 
