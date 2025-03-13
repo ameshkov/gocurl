@@ -1,6 +1,6 @@
 # Step 1: Use the official Golang image as the build environment.
 # This image includes all the tools needed to compile Go applications.
-FROM golang:1.21 as builder
+FROM golang:1.23 as builder
 
 # Version will be passed as a part of the build.
 ARG VERSION=dev

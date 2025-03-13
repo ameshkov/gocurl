@@ -53,7 +53,7 @@ func TestHandshake_encryptedClientHello(t *testing.T) {
 	require.NoError(t, err)
 
 	transport := &http.Transport{
-		DialTLSContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
+		DialTLSContext: func(_ context.Context, _, _ string) (net.Conn, error) {
 			return tlsConn, nil
 		},
 	}
@@ -100,7 +100,7 @@ func TestHandshake_postQuantum(t *testing.T) {
 	require.NoError(t, err)
 
 	transport := &http.Transport{
-		DialTLSContext: func(ctx context.Context, network, addr string) (net.Conn, error) {
+		DialTLSContext: func(_ context.Context, _, _ string) (net.Conn, error) {
 			return tlsConn, nil
 		},
 	}
