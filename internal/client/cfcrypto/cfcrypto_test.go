@@ -18,7 +18,7 @@ import (
 )
 
 func TestHandshake_encryptedClientHello(t *testing.T) {
-	const relayDomain = "crypto.cloudflare.com"
+	const relayDomain = "cloudflare-ech.com"
 	const privateDomain = "cloudflare.com"
 	const path = "cdn-cgi/trace"
 
@@ -30,7 +30,7 @@ func TestHandshake_encryptedClientHello(t *testing.T) {
 	r, err := resolve.NewResolver(cfg, out)
 	require.NoError(t, err)
 
-	echConfigs, err := r.LookupECHConfigs("crypto.cloudflare.com")
+	echConfigs, err := r.LookupECHConfigs(relayDomain)
 	require.NoError(t, err)
 	require.NotEmpty(t, echConfigs)
 
@@ -116,5 +116,5 @@ func TestHandshake_postQuantum(t *testing.T) {
 	require.NotEmpty(t, body)
 
 	bodyStr := string(body)
-	require.Contains(t, bodyStr, "kex=X25519Kyber768Draft00")
+	require.Contains(t, bodyStr, "kex=X25519MLKEM768")
 }

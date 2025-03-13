@@ -126,7 +126,7 @@ func (o *Output) DebugResponse(resp *http.Response) {
 				o.Debug("IP addresses:\n%s", strings.Join(certInfo.IPAddresses, "\n"))
 			}
 			o.Debug("Raw certificate:")
-			o.Debug(certInfo.Raw)
+			o.Debug("%s", certInfo.Raw)
 		}
 	}
 

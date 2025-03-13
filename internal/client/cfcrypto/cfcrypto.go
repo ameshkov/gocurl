@@ -58,7 +58,12 @@ func Handshake(
 	if cfg.ECH {
 		echConfigs, err = resolver.LookupECHConfigs(tlsConfig.ServerName)
 		if err != nil {
-			return nil, err
+			// Continue even if ECH config is not found.
+			out.Info(
+				"Warning: ECH config not found for %s: %v",
+				tlsConfig.ServerName,
+				err,
+			)
 		}
 	}
 
@@ -82,14 +87,17 @@ func Handshake(
 		conf.NextProtos = []string{"http/1.1"}
 	}
 
-	if len(echConfigs) > 0 {
+	if cfg.ECH {
 		conf.ECHEnabled = true
+	}
+
+	if len(echConfigs) > 0 {
 		conf.ClientECHConfigs = echConfigs
 	}
 
 	if postQuantum {
 		conf.CurvePreferences = []ctls.CurveID{
-			ctls.X25519Kyber768Draft00,
+			ctls.X25519MLKEM768,
 			ctls.X25519,
 			ctls.CurveP256,
 		}

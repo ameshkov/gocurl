@@ -11,7 +11,22 @@ adheres to [Semantic Versioning][semver].
 
 ## [Unreleased]
 
-[unreleased]: https://github.com/ameshkov/gocurl/compare/v1.4.3...HEAD
+[unreleased]: https://github.com/ameshkov/gocurl/compare/v1.4.4...HEAD
+
+## [1.4.4] - 2025-03-13
+
+### Changed
+
+* Updated dependenceis.
+* `--ech` no more fails when there's no ECH configuration for the domain, it
+  just falls back to regular TLS and prints a warning.
+* Use MLKEM for post-quantum key exchange when `--experiment` is used.
+
+[See changes][1.4.4changes].
+
+[1.4.4changes]: https://github.com/ameshkov/gocurl/compare/v1.4.3...v1.4.4
+
+[1.4.4]: https://github.com/ameshkov/gocurl/releases/tag/v1.4.4
 
 ## [1.4.3] - 2024-06-04
 

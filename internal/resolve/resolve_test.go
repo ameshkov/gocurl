@@ -87,7 +87,7 @@ func TestResolver_LookupECHConfigs(t *testing.T) {
 	r, err := resolve.NewResolver(&config.Config{}, out)
 	require.NoError(t, err)
 
-	echConfigs, err := r.LookupECHConfigs("crypto.cloudflare.com")
+	echConfigs, err := r.LookupECHConfigs("cloudflare-ech.com")
 	require.NoError(t, err)
 	require.NotEmpty(t, echConfigs)
 }
