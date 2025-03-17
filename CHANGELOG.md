@@ -11,6 +11,10 @@ adheres to [Semantic Versioning][semver].
 
 ## [Unreleased]
 
+[unreleased]: https://github.com/ameshkov/gocurl/compare/v1.4.5...HEAD
+
+## [1.4.5] - 2025-03-17
+
 ### Added
 
 * Added `http` and `https` proxies support. ([#31][#31])
@@ -21,7 +25,9 @@ adheres to [Semantic Versioning][semver].
 
 [#31]: https://github.com/ameshkov/gocurl/issues/31
 
-[unreleased]: https://github.com/ameshkov/gocurl/compare/v1.4.4...HEAD
+[1.4.5changes]: https://github.com/ameshkov/gocurl/compare/v1.4.4...v1.4.5
+
+[1.4.5]: https://github.com/ameshkov/gocurl/releases/tag/v1.4.5
 
 ## [1.4.4] - 2025-03-13
 
