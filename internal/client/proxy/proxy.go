@@ -51,6 +51,8 @@ func createProxyDialer(proxyURL *url.URL, f proxy.Dialer) (d proxy.Dialer, err e
 	switch proxyURL.Scheme {
 	case "socks5", "socks5h":
 		return createSOCKS5ProxyDialer(proxyURL)
+	case "http", "https":
+		return createHTTPProxyDialer(proxyURL, f)
 	default:
 		return proxy.FromURL(proxyURL, f)
 	}
