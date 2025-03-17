@@ -223,9 +223,17 @@ func stateToTLSState(state *tls.ConnectionState) (s *TLSState) {
 
 // responseToJSON transforms response data to JSON format.
 func responseToJSON(resp *http.Response, responseBody io.Reader) (b []byte, err error) {
-	body, err := io.ReadAll(responseBody)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read response body: %w", err)
+	var body []byte
+
+	if responseBody != nil {
+		// Ignore errors when reading response body.
+		//
+		// TODO(ameshkov): This is a quick crutch, it needs to be logged at least.
+		body, _ = io.ReadAll(responseBody)
+	}
+
+	if body == nil {
+		body = []byte{}
 	}
 
 	data := ResponseData{

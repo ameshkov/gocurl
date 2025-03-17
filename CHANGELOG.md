@@ -15,6 +15,10 @@ adheres to [Semantic Versioning][semver].
 
 * Added `http` and `https` proxies support. ([#31][#31])
 
+### Fixed
+
+* Panic when `--json-output` is specified and failed to read response body.
+
 [#31]: https://github.com/ameshkov/gocurl/issues/31
 
 [unreleased]: https://github.com/ameshkov/gocurl/compare/v1.4.4...HEAD
