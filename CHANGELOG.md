@@ -11,16 +11,24 @@ adheres to [Semantic Versioning][semver].
 
 ## [Unreleased]
 
+[unreleased]: https://github.com/ameshkov/gocurl/compare/v1.4.6...HEAD
+
+## [1.4.6] - 2025-03-21
+
 ### Fixed
 
 * Cannot set User Agent via headers. ([#34][#34])
 * `--insecure` flag is not respected by DNS upstreams. ([#30][#30])
 
+[See changes][1.4.6changes].
+
 [#30]: https://github.com/ameshkov/gocurl/issues/30
 
 [#34]: https://github.com/ameshkov/gocurl/issues/34
 
-[unreleased]: https://github.com/ameshkov/gocurl/compare/v1.4.5...HEAD
+[1.4.6changes]: https://github.com/ameshkov/gocurl/compare/v1.4.5...v1.4.6
+
+[1.4.6]: https://github.com/ameshkov/gocurl/releases/tag/v1.4.6
 
 ## [1.4.5] - 2025-03-17
 
@@ -31,6 +39,8 @@ adheres to [Semantic Versioning][semver].
 ### Fixed
 
 * Panic when `--json-output` is specified and failed to read response body.
+
+[See changes][1.4.5changes].
 
 [#31]: https://github.com/ameshkov/gocurl/issues/31
 
