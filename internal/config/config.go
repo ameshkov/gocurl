@@ -207,7 +207,7 @@ func ParseConfig() (cfg *Config, err error) {
 	}
 
 	if opts.DNSServers != "" {
-		cfg.DNSServers, err = parseDNSServers(opts.DNSServers)
+		cfg.DNSServers, err = parseDNSServers(opts.DNSServers, opts.Insecure)
 		if err != nil {
 			return nil, fmt.Errorf("invalid dns-servers specified %s: %w", opts.DNSServers, err)
 		}
@@ -349,11 +349,14 @@ func parseResolve(resolve []string) (m map[string][]net.IP, err error) {
 }
 
 // parseDNSServers parses --dns-servers command-line argument and returns the
-// list of upstream.Upstream created from them.
-func parseDNSServers(dnsServers string) (upstreams []upstream.Upstream, err error) {
+// list of upstream.Upstream created from them.  If insecure is true and the
+// upstreams use encrypted DNS, certificate verification will be disabled for
+// them.
+func parseDNSServers(dnsServers string, insecure bool) (upstreams []upstream.Upstream, err error) {
 	addrs := strings.Split(dnsServers, ",")
 	for _, addr := range addrs {
-		u, uErr := upstream.AddressToUpstream(addr, nil)
+		opts := &upstream.Options{InsecureSkipVerify: insecure}
+		u, uErr := upstream.AddressToUpstream(addr, opts)
 		if uErr != nil {
 			return nil, fmt.Errorf("invalid DNS server %s: %w", addr, uErr)
 		}

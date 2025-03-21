@@ -14,6 +14,9 @@ adheres to [Semantic Versioning][semver].
 ### Fixed
 
 * Cannot set User Agent via headers. ([#34][#34])
+* `--insecure` flag is not respected by DNS upstreams. ([#30][#30])
+
+[#30]: https://github.com/ameshkov/gocurl/issues/30
 
 [#34]: https://github.com/ameshkov/gocurl/issues/34
 
