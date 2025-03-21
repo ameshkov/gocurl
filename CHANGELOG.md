@@ -11,6 +11,12 @@ adheres to [Semantic Versioning][semver].
 
 ## [Unreleased]
 
+### Fixed
+
+* Cannot set User Agent via headers. ([#34][#34])
+
+[#34]: https://github.com/ameshkov/gocurl/issues/34
+
 [unreleased]: https://github.com/ameshkov/gocurl/compare/v1.4.5...HEAD
 
 ## [1.4.5] - 2025-03-17

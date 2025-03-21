@@ -31,9 +31,13 @@ func NewRequest(cfg *config.Config) (req *http.Request, err error) {
 		return nil, err
 	}
 
-	req.Header.Set("User-Agent", fmt.Sprintf("gocurl/%s", version.Version()))
 	addBodyHeaders(req, cfg)
 	addHeaders(req, cfg)
+
+	// Only set default User-Agent if it was not set by the user.
+	if req.Header.Get("User-Agent") == "" {
+		req.Header.Set("User-Agent", fmt.Sprintf("gocurl/%s", version.Version()))
+	}
 
 	if ur := websocket.UpgradeWebSocket(req); ur != nil {
 		req = ur
