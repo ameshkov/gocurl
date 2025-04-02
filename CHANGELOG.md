@@ -11,12 +11,20 @@ adheres to [Semantic Versioning][semver].
 
 ## [Unreleased]
 
+[unreleased]: https://github.com/ameshkov/gocurl/compare/v1.4.7...HEAD
+
+## [1.4.7] - 2025-04-02
+
 ### Added
 
 * Added support for `--echgrease` command-line argument. This option is used to
   enable ECH Grease for TLS ClientHello.
 
-[unreleased]: https://github.com/ameshkov/gocurl/compare/v1.4.6...HEAD
+[See changes][1.4.7changes].
+
+[1.4.7changes]: https://github.com/ameshkov/gocurl/compare/v1.4.6...v1.4.7
+
+[1.4.7]: https://github.com/ameshkov/gocurl/releases/tag/v1.4.7
 
 ## [1.4.6] - 2025-03-21
 
