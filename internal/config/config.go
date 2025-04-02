@@ -72,6 +72,11 @@ type Config struct {
 	// received from the DNS settings.
 	ECH bool
 
+	// ECHGrease forces sending ECH grease in the ClientHello.  This option
+	// does not try to resolve the ECH configuration and is only used for
+	// testing ECH grease.
+	ECHGrease bool
+
 	// ECHConfigs is a set of ECH configurations that will be used when opening
 	// an encrypted connection.
 	ECHConfigs []ctls.ECHConfig
@@ -169,6 +174,7 @@ func ParseConfig() (cfg *Config, err error) {
 		ForceHTTP2:    opts.HTTPv2,
 		ForceHTTP3:    opts.HTTPv3,
 		ECH:           opts.ECH,
+		ECHGrease:     opts.ECHGrease,
 		IPv4:          opts.IPv4,
 		IPv6:          opts.IPv6,
 		TLSServerName: opts.TLSServerName,

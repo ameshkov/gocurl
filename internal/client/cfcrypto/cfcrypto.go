@@ -87,7 +87,7 @@ func Handshake(
 		conf.NextProtos = []string{"http/1.1"}
 	}
 
-	if cfg.ECH {
+	if cfg.ECH || cfg.ECHGrease {
 		conf.ECHEnabled = true
 	}
 
@@ -104,6 +104,9 @@ func Handshake(
 	}
 
 	c := ctls.Client(conn, conf)
+
+	out.Debug("Starting TLS handshake")
+
 	err = c.Handshake()
 
 	if err != nil {

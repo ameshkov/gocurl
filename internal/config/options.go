@@ -70,6 +70,11 @@ type Options struct {
 	// received from the DNS settings.
 	ECH bool `long:"ech" description:"Enables ECH support for the request." optional:"yes" optional-value:"true"`
 
+	// ECHGrease forces sending ECH grease in the ClientHello.  This option
+	// does not try to resolve the ECH configuration and is only used for
+	// testing ECH grease.
+	ECHGrease bool `long:"echgrease" description:"Forces sending ECH grease in the ClientHello, but does not try to resolve the ECH configuration." optional:"yes" optional-value:"true"`
+
 	// ECHConfig is a custom ECH configuration to use for this request.  If this
 	// option is specified, there will be no attempt to discover the ECH
 	// configuration using DNS.

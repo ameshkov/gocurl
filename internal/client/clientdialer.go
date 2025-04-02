@@ -66,7 +66,7 @@ func (d *clientDialer) DialTLSContext(_ context.Context, network, addr string) (
 	}
 
 	_, postQuantum := d.cfg.Experiments[config.ExpPostQuantum]
-	if d.cfg.ECH || postQuantum {
+	if d.cfg.ECH || d.cfg.ECHGrease || postQuantum {
 		d.conn, err = d.handshakeCTLS(conn)
 	} else {
 		d.conn, err = d.handshakeTLS(conn)
