@@ -103,6 +103,10 @@ type Options struct {
 	// in milliseconds before sending the second part.
 	TLSSplitHello string `long:"tls-split-hello" description:"An option that allows splitting TLS ClientHello in two parts in order to avoid common DPI systems detecting TLS. CHUNKSIZE is the size of the first bytes before ClientHello is split, DELAY is delay in milliseconds before sending the second part." value-name:"<CHUNKSIZE:DELAY>"`
 
+	// TLSRandom allows overriding the TLS ClientHello random value. Must be
+	// a base64-encoded 32-byte string.
+	TLSRandom string `long:"tls-random" description:"Base64-encoded 32-byte TLS ClientHello random value." value-name:"<base64>"`
+
 	// OutputJSON enables writing output in JSON format.
 	OutputJSON bool `long:"json-output" description:"Makes gocurl write machine-readable output in JSON format." optional:"yes" optional-value:"true"`
 
