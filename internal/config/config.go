@@ -64,7 +64,7 @@ type Config struct {
 	// ForceHTTP2 forces using HTTP/2.
 	ForceHTTP2 bool
 
-	// ForceHTTP2 forces using HTTP/3.
+	// ForceHTTP3 forces using HTTP/3.
 	ForceHTTP3 bool
 
 	// ECH forces usage of Encrypted Client Hello for the request.  If other
@@ -105,6 +105,10 @@ type Config struct {
 	// TLSSplitDelay is a delay in milliseconds before sending the second
 	// chunk of ClientHello.
 	TLSSplitDelay int
+
+	// TLSRandom is a 32-byte value to override the TLS ClientHello random.
+	// If nil, use default.
+	TLSRandom []byte
 
 	// OutputJSON enables writing output in JSON format.
 	OutputJSON bool
@@ -259,6 +263,18 @@ func ParseConfig() (cfg *Config, err error) {
 		if err != nil {
 			return nil, fmt.Errorf("invalid tls-split-hello: %w", err)
 		}
+	}
+
+	if opts.TLSRandom != "" {
+		var b []byte
+		b, err = base64.StdEncoding.DecodeString(opts.TLSRandom)
+		if err != nil {
+			return nil, fmt.Errorf("--tls-random must be a valid base64 string: %w", err)
+		}
+		if len(b) != 32 {
+			return nil, fmt.Errorf("--tls-random must decode to exactly 32 bytes (got %d)", len(b))
+		}
+		cfg.TLSRandom = b
 	}
 
 	if opts.ECHConfig != "" {

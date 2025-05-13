@@ -11,6 +11,13 @@ adheres to [Semantic Versioning][semver].
 
 ## [Unreleased]
 
+### Added
+
+* Added support for `--tls-random` command-line argument. This option is used to
+  enable TLS Random for TLS ClientHello. ([#35][#35])
+
+[#35]: https://github.com/ameshkov/gocurl/issues/35
+
 [unreleased]: https://github.com/ameshkov/gocurl/compare/v1.4.7...HEAD
 
 ## [1.4.7] - 2025-04-02

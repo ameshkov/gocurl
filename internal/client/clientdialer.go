@@ -2,8 +2,10 @@ package client
 
 import (
 	"context"
+	"crypto/rand"
 	"crypto/tls"
 	"fmt"
+	"io"
 	"net"
 
 	"github.com/ameshkov/gocurl/internal/client/cfcrypto"
@@ -162,6 +164,37 @@ func createDialFunc(
 	return dial, nil
 }
 
+// tlsRandomReader is an io.Reader that returns the provided TLS random bytes,
+// and then fallbacks to crypto/rand.Reader.
+type tlsRandomReader struct {
+	data []byte
+	pos  int
+}
+
+// type check
+var _ io.Reader = (*tlsRandomReader)(nil)
+
+// Read implements io.Reader for *tlsRandomReader. It returns the provided TLS
+// random bytes, and then fallbacks to crypto/rand.Reader.
+func (r *tlsRandomReader) Read(p []byte) (n int, err error) {
+	if r.pos < len(r.data) {
+		toCopy := len(r.data) - r.pos
+		if toCopy > len(p) {
+			toCopy = len(p)
+		}
+		copy(p, r.data[r.pos:r.pos+toCopy])
+		r.pos += toCopy
+		if toCopy < len(p) {
+			// Fill the rest from crypto/rand.Reader
+			nn, err := io.ReadFull(rand.Reader, p[toCopy:])
+			return toCopy + nn, err
+		}
+		return toCopy, nil
+	}
+	// All data consumed, fallback to crypto/rand.Reader
+	return rand.Read(p)
+}
+
 // createTLSConfig creates TLS config based on the configuration.
 func createTLSConfig(cfg *config.Config, out *output.Output) (tlsConfig *tls.Config) {
 	tlsConfig = &tls.Config{
@@ -182,6 +215,11 @@ func createTLSConfig(cfg *config.Config, out *output.Output) (tlsConfig *tls.Con
 
 	if cfg.Insecure {
 		tlsConfig.InsecureSkipVerify = true
+	}
+
+	if cfg.TLSRandom != nil && len(cfg.TLSRandom) == 32 {
+		out.Debug("Overriding TLS ClientHello random value")
+		tlsConfig.Rand = &tlsRandomReader{data: cfg.TLSRandom}
 	}
 
 	if websocket.IsWebSocket(cfg.RequestURL) {
