@@ -189,8 +189,10 @@ func (r *tlsRandomReader) Read(p []byte) (n int, err error) {
 			nn, err := io.ReadFull(rand.Reader, p[toCopy:])
 			return toCopy + nn, err
 		}
+
 		return toCopy, nil
 	}
+
 	// All data consumed, fallback to crypto/rand.Reader
 	return rand.Read(p)
 }
