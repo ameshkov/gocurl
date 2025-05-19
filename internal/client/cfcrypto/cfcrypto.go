@@ -78,6 +78,11 @@ func Handshake(
 		NextProtos:         tlsConfig.NextProtos,
 	}
 
+	// Copy Rand if set (for --tls-random support with ECH and regular TLS)
+	if tlsConfig.Rand != nil {
+		conf.Rand = tlsConfig.Rand
+	}
+
 	// In the case of regular http.Transport it can handle h2 upgrade with the
 	// regular tls.Conn only so remove h2 from NextProtos in this case.
 	//
