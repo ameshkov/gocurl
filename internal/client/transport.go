@@ -77,7 +77,7 @@ func NewTransport(cfg *config.Config, out *output.Output) (rt Transport, err err
 }
 
 // createHTTPTransport creates http.RoundTripper that will be used by the
-// *http.Client. Depending on the configuration it may create a H1, H2 or H3
+// *http.Client. Depending on the configuration it may create an H1, H2 or H3
 // transport.
 func createHTTPTransport(
 	d *clientDialer,
@@ -94,7 +94,7 @@ func createHTTPTransport(
 	return createH12Transport(d)
 }
 
-// createH3Transport creates a http.RoundTripper to be used in HTTP/3 client.
+// createH3Transport creates an http.RoundTripper to be used in HTTP/3 client.
 func createH3Transport(d *clientDialer) (rt http.RoundTripper, err error) {
 	return &http3.RoundTripper{
 		DisableCompression: true,
@@ -102,7 +102,7 @@ func createH3Transport(d *clientDialer) (rt http.RoundTripper, err error) {
 	}, nil
 }
 
-// h2Transport is a http.RoundTripper implementation that forcibly use
+// h2Transport is an http.RoundTripper implementation that forcibly use
 // http2.Transport.
 type h2Transport struct {
 	d *clientDialer
