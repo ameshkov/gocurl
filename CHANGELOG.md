@@ -11,13 +11,21 @@ adheres to [Semantic Versioning][semver].
 
 ## [Unreleased]
 
+[unreleased]: https://github.com/ameshkov/gocurl/compare/v1.4.9...HEAD
+
+## [1.4.9] - 2025-05-19
+
 ### Fixed
 
 * Fixed the issue with `--tls-random` when it's used with `--ech`. ([#38][#38])
 
+[See changes][1.4.9changes].
+
 [#38]: https://github.com/ameshkov/gocurl/issues/38
 
-[unreleased]: https://github.com/ameshkov/gocurl/compare/v1.4.8...HEAD
+[1.4.9changes]: https://github.com/ameshkov/gocurl/compare/v1.4.8...v1.4.9
+
+[1.4.9]: https://github.com/ameshkov/gocurl/releases/tag/v1.4.9
 
 ## [1.4.8] - 2025-05-13
 
