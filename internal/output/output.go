@@ -38,7 +38,7 @@ func NewOutput(path string, verbose bool) (o *Output, err error) {
 	}
 
 	if path != "" {
-		o.receivedDataFile, err = os.OpenFile(path, os.O_WRONLY|os.O_CREATE, 0o644)
+		o.receivedDataFile, err = os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0o644)
 	}
 
 	return o, err
