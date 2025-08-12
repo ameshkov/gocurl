@@ -50,5 +50,7 @@ func (u *udpConn) SetReadBuffer(bytes int) (err error) {
 }
 
 // type check
-var _ net.PacketConn = (*udpConn)(nil)
-var _ bufferConfigurable = (*udpConn)(nil)
+var (
+	_ net.PacketConn     = (*udpConn)(nil)
+	_ bufferConfigurable = (*udpConn)(nil)
+)

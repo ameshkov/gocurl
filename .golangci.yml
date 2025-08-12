@@ -62,6 +62,12 @@ linters:
 formatters:
   enable:
     - goimports
+    - gofumpt
+    - golines
+  settings:
+    golines:
+      max-len: 120
+      shorten-comments: true
   exclusions:
     generated: lax
     paths:

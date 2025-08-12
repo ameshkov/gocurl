@@ -161,7 +161,6 @@ func NewExperiment(str string) (e Experiment, err error) {
 // nolint:gocyclo
 func ParseConfig() (cfg *Config, err error) {
 	opts, err := parseOptions()
-
 	if err != nil {
 		return nil, err
 	}

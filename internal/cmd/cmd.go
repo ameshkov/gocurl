@@ -54,7 +54,6 @@ func Main() {
 	}
 
 	req, err := client.NewRequest(cfg)
-
 	if err != nil {
 		out.Info("Failed to create request: %v", err)
 
