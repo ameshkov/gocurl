@@ -10,22 +10,19 @@ name: Build
 
 jobs:
   tests:
-    runs-on: ${{ matrix.os }}
-    env:
-      GO111MODULE: "on"
     strategy:
       matrix:
+        go: [stable]
         os:
           - windows-latest
           - macos-latest
           - ubuntu-latest
-
+    runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@master
-
-      - uses: actions/setup-go@v3
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
         with:
-          go-version: 1.x
+          go-version: stable
 
       - name: Run tests
         run: |-
@@ -42,14 +39,12 @@ jobs:
     needs:
       - tests
     runs-on: ubuntu-latest
-    env:
-      GO111MODULE: "on"
     steps:
-      - uses: actions/checkout@master
+      - uses: actions/checkout@v4
 
-      - uses: actions/setup-go@v3
+      - uses: actions/setup-go@v5
         with:
-          go-version: 1.x
+          go-version: stable
 
       - name: Prepare environment
         run: |-
