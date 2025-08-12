@@ -34,7 +34,7 @@ func Main() {
 	}
 
 	if err != nil {
-		_, _ = os.Stderr.WriteString(fmt.Sprintf("Failed to parse args: %v", err))
+		_, _ = fmt.Fprintf(os.Stderr, "Failed to parse args: %v", err)
 
 		os.Exit(1)
 	}
