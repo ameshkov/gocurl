@@ -113,7 +113,6 @@ func Handshake(
 	out.Debug("Starting TLS handshake")
 
 	err = c.Handshake()
-
 	if err != nil {
 		return nil, err
 	}

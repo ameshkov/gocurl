@@ -153,7 +153,7 @@ func (r *Resolver) LookupECHConfigs(hostname string) (echConfigs []ctls.ECHConfi
 	for _, rr := range resp.Answer {
 		switch v := rr.(type) {
 		case *dns.HTTPS:
-			for _, svcb := range v.SVCB.Value {
+			for _, svcb := range v.Value {
 				if svcb.Key() == dns.SVCB_ECHCONFIG {
 					echConfigRR := svcb.(*dns.SVCBECHConfig)
 					echConfig, echErr := ctls.UnmarshalECHConfigs(echConfigRR.ECH)

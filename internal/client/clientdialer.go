@@ -219,7 +219,7 @@ func createTLSConfig(cfg *config.Config, out *output.Output) (tlsConfig *tls.Con
 		tlsConfig.InsecureSkipVerify = true
 	}
 
-	if cfg.TLSRandom != nil && len(cfg.TLSRandom) == 32 {
+	if len(cfg.TLSRandom) == 32 {
 		out.Debug("Overriding TLS ClientHello random value")
 		tlsConfig.Rand = &tlsRandomReader{data: cfg.TLSRandom}
 	}

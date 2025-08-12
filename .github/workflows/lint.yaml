@@ -9,18 +9,19 @@ name: golangci-lint
 
 jobs:
   golangci:
-    runs-on:
-      ${{ matrix.os }}
     strategy:
       matrix:
-        os:
-          - ubuntu-latest
-          - macos-latest
+        go: [stable]
+        os: [ubuntu-latest, macos-latest]
+    name: lint
+    runs-on: ${{ matrix.os }}
     steps:
-      - uses: actions/checkout@v2
-      - name: golangci-lint
-        uses: golangci/golangci-lint-action@v2.3.0
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
         with:
-          # This field is required.  Dont set the patch version to always use
-          # the latest patch version.
-          version: v1.64.7
+          go-version: ${{ matrix.go }}
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v8
+        with:
+          version: v2.3.1
+

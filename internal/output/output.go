@@ -71,7 +71,6 @@ func (o *Output) Write(resp *http.Response, responseBody io.Reader, cfg *config.
 func (o *Output) Info(format string, args ...any) {
 	msg := fmt.Sprintf(format, args...)
 	_, err := os.Stderr.WriteString(msg + "\n")
-
 	if err != nil {
 		panic(err)
 	}
@@ -84,7 +83,6 @@ func (o *Output) Debug(format string, args ...any) {
 	}
 
 	_, err := os.Stderr.WriteString(fmt.Sprintf(format, args...) + "\n")
-
 	if err != nil {
 		panic(err)
 	}
