@@ -137,7 +137,8 @@ func newObliviousHTTPTransport(
 	// Download the KeyConfig from the keys URL.
 	out.Debug("Downloading OHTTP KeyConfig from: %s", cfg.OHTTPKeysURL.String())
 
-	keyResp, err := http.Get(cfg.OHTTPKeysURL.String())
+	client := &http.Client{Transport: bt}
+	keyResp, err := client.Get(cfg.OHTTPKeysURL.String())
 	if err != nil {
 		return nil, fmt.Errorf("failed to download OHTTP KeyConfig: %w", err)
 	}
