@@ -266,7 +266,7 @@ gocurl -v \
 This command will:
 
 1. Download the OHTTP KeyConfig from the keys URL.
-2. Encrypt your request to `https://httpbin.org/get` using OHTTP.
+2. Encrypt your request to `https://httpbin.agrd.workers.dev/get` using OHTTP.
 3. Send the encrypted request to the gateway.
 4. Receive the encrypted response from the gateway.
 5. Decrypt and display the response.
