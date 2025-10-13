@@ -24,4 +24,7 @@ jobs:
         uses: golangci/golangci-lint-action@v8
         with:
           version: v2.3.1
-
+      - name: markdownlint-cli
+        uses: nosborn/github-action-markdown-cli@v3.5.0
+        with:
+          files: .
