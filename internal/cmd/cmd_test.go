@@ -428,9 +428,6 @@ func TestRunOHTTP(t *testing.T) {
 	// httpbin /get returns JSON with the request details
 	// The response should contain JSON content
 	assert.Contains(t, data, "application/json")
-
-	// Log the actual output for debugging
-	t.Logf("Response data: %s", data)
 }
 
 // TestOHTTPInvalidOptions tests that invalid OHTTP option combinations are rejected.
@@ -490,77 +487,6 @@ func TestOHTTPValidOptions(t *testing.T) {
 	assert.Equal(t, "https://example.com/gateway", cfg.OHTTPGatewayURL.String())
 	assert.NotNil(t, cfg.OHTTPKeysURL)
 	assert.Equal(t, "https://example.com/config", cfg.OHTTPKeysURL.String())
-}
-
-// createTestProxy creates a test HTTP CONNECT proxy server that tracks requests.
-// Returns the proxy server and a pointer to a boolean that indicates if the proxy
-// received a request.
-func createTestProxy() (*httptest.Server, *bool) {
-	proxyReceived := false
-
-	proxy := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Mark that proxy received a request
-		proxyReceived = true
-
-		// Only handle CONNECT method (tunnel)
-		if r.Method != http.MethodConnect {
-			http.Error(w, "Only CONNECT is supported", http.StatusMethodNotAllowed)
-			return
-		}
-
-		// Extract target address from the request
-		targetAddr := r.Host
-
-		// Connect to the target server
-		targetConn, err := net.Dial("tcp", targetAddr)
-		if err != nil {
-			http.Error(w, fmt.Sprintf("Failed to connect to target: %v", err), http.StatusBadGateway)
-			return
-		}
-		defer func() {
-			_ = targetConn.Close()
-		}()
-
-		// Hijack the connection to handle the tunnel
-		hijacker, ok := w.(http.Hijacker)
-		if !ok {
-			http.Error(w, "Hijacking not supported", http.StatusInternalServerError)
-			return
-		}
-
-		clientConn, _, err := hijacker.Hijack()
-		if err != nil {
-			http.Error(w, fmt.Sprintf("Failed to hijack connection: %v", err), http.StatusInternalServerError)
-			return
-		}
-		defer func() {
-			_ = clientConn.Close()
-		}()
-
-		// Send 200 Connection Established response
-		_, err = clientConn.Write([]byte("HTTP/1.1 200 Connection Established\r\n\r\n"))
-		if err != nil {
-			return
-		}
-
-		// Start bidirectional copying between client and target
-		done := make(chan struct{}, 2)
-
-		go func() {
-			_, _ = io.Copy(targetConn, clientConn)
-			done <- struct{}{}
-		}()
-
-		go func() {
-			_, _ = io.Copy(clientConn, targetConn)
-			done <- struct{}{}
-		}()
-
-		// Wait for either direction to complete
-		<-done
-	}))
-
-	return proxy, &proxyReceived
 }
 
 // TestRunWithProxy tests that the proxy argument works correctly.
@@ -634,7 +560,75 @@ func TestRunOHTTPWithProxy(t *testing.T) {
 	// Verify the output contains JSON content (OHTTP response)
 	data := dataBuffer.String()
 	assert.Contains(t, data, "application/json")
+}
 
-	// Log the actual output for debugging
-	t.Logf("Response data: %s", data)
+// createTestProxy creates a test HTTP CONNECT proxy server that tracks requests.
+// Returns the proxy server and a pointer to a boolean that indicates if the proxy
+// received a request.
+func createTestProxy() (*httptest.Server, *bool) {
+	proxyReceived := false
+
+	proxy := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Mark that proxy received a request
+		proxyReceived = true
+
+		// Only handle CONNECT method (tunnel)
+		if r.Method != http.MethodConnect {
+			http.Error(w, "Only CONNECT is supported", http.StatusMethodNotAllowed)
+			return
+		}
+
+		// Extract target address from the request
+		targetAddr := r.Host
+
+		// Connect to the target server
+		targetConn, err := net.Dial("tcp", targetAddr)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Failed to connect to target: %v", err), http.StatusBadGateway)
+			return
+		}
+		defer func() {
+			_ = targetConn.Close()
+		}()
+
+		// Hijack the connection to handle the tunnel
+		hijacker, ok := w.(http.Hijacker)
+		if !ok {
+			http.Error(w, "Hijacking not supported", http.StatusInternalServerError)
+			return
+		}
+
+		clientConn, _, err := hijacker.Hijack()
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Failed to hijack connection: %v", err), http.StatusInternalServerError)
+			return
+		}
+		defer func() {
+			_ = clientConn.Close()
+		}()
+
+		// Send 200 Connection Established response
+		_, err = clientConn.Write([]byte("HTTP/1.1 200 Connection Established\r\n\r\n"))
+		if err != nil {
+			return
+		}
+
+		// Start bidirectional copying between client and target
+		done := make(chan struct{}, 2)
+
+		go func() {
+			_, _ = io.Copy(targetConn, clientConn)
+			done <- struct{}{}
+		}()
+
+		go func() {
+			_, _ = io.Copy(clientConn, targetConn)
+			done <- struct{}{}
+		}()
+
+		// Wait for either direction to complete
+		<-done
+	}))
+
+	return proxy, &proxyReceived
 }

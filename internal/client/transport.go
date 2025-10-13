@@ -68,7 +68,8 @@ func NewTransport(cfg *config.Config, out *output.Output) (rt Transport, err err
 		return newObliviousHTTPTransport(cfg, out)
 	}
 
-	d, err := newDialer(cfg, out)
+	hostname := cfg.RequestURL.Hostname()
+	d, err := newDialer(hostname, cfg, out)
 	if err != nil {
 		return nil, err
 	}

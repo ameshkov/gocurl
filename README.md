@@ -281,7 +281,18 @@ gocurl -v \
   https://httpbin.agrd.workers.dev/post
 ```
 
+One more example that uses a demo gateway from [Oblivious Network][ohttpdemo]:
+
+```shell
+gocurl -v \
+  --ohttp-gateway-url "https://demo-gateway.oblivious.network/gateway" \
+  --ohttp-keys-url "https://demo-gateway.oblivious.network/ohttp-configs" \
+  https://httpbin.agrd.workers.dev/get
+```
+
 [ohttp]: https://www.ietf.org/rfc/rfc9458.html
+
+[ohttpdemo]: https://docs.oblivious.network/docs/quickstart/
 
 <a id="websocket"></a>
 

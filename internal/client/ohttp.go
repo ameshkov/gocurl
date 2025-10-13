@@ -13,11 +13,10 @@ import (
 	"github.com/chris-wood/ohttp-go"
 )
 
-// obliviousHTTPTransport is a transport that uses Oblivious HTTP to encrypt
+// obliviousHTTPTransport is transport that uses Oblivious HTTP to encrypt
 // requests before sending them to a gateway.
 type obliviousHTTPTransport struct {
-	d            *clientDialer
-	base         http.RoundTripper
+	base         Transport
 	gatewayURL   *url.URL
 	publicConfig ohttp.PublicConfig
 	out          *output.Output
@@ -28,11 +27,12 @@ var _ Transport = (*obliviousHTTPTransport)(nil)
 
 // Conn returns the last established connection using this transport.
 func (t *obliviousHTTPTransport) Conn() (conn net.Conn) {
-	return t.d.conn
+	return t.base.Conn()
 }
 
-// RoundTrip implements the http.RoundTripper interface for *obliviousHTTPTransport.
-// It encrypts the request using OHTTP and sends it to the gateway.
+// RoundTrip implements the http.RoundTripper interface for
+// *obliviousHTTPTransport. It encrypts the request using OHTTP and sends it to
+// the gateway.
 func (t *obliviousHTTPTransport) RoundTrip(r *http.Request) (resp *http.Response, err error) {
 	// Create an OHTTP client with the public configuration.
 	client := ohttp.NewDefaultClient(t.publicConfig)
@@ -109,7 +109,8 @@ func (t *obliviousHTTPTransport) RoundTrip(r *http.Request) (resp *http.Response
 
 	t.out.Debug("Decrypted response size: %d bytes", len(decryptedResp))
 
-	// Parse the decrypted response as an HTTP response using BinaryResponse format.
+	// Parse the decrypted response as an HTTP response using BinaryResponse
+	// format.
 	resp, err = ohttp.UnmarshalBinaryResponse(decryptedResp)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse decrypted response: %w", err)
@@ -118,27 +119,45 @@ func (t *obliviousHTTPTransport) RoundTrip(r *http.Request) (resp *http.Response
 	return resp, nil
 }
 
+func newRoundTripper(
+	hostname string,
+	cfg *config.Config,
+	out *output.Output,
+) (rt http.RoundTripper, d *clientDialer, err error) {
+	d, err = newDialer(hostname, cfg, out)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// Create transport for communicating with the hostname.
+	rt, err = createHTTPTransport(d, cfg)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	return rt, d, nil
+}
+
 // newObliviousHTTPTransport creates a new obliviousHTTPTransport.
 func newObliviousHTTPTransport(
 	cfg *config.Config,
 	out *output.Output,
 ) (rt Transport, err error) {
-	d, err := newDialer(cfg, out)
+	// Create base transport for requesting the KeyConfig.
+	keyTransport, _, err := newRoundTripper(cfg.OHTTPKeysURL.Hostname(), cfg, out)
 	if err != nil {
-		return nil, err
-	}
-
-	// Create a base transport for communicating with the gateway.
-	bt, err := createHTTPTransport(d, cfg)
-	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to create key transport: %w", err)
 	}
 
 	// Download the KeyConfig from the keys URL.
 	out.Debug("Downloading OHTTP KeyConfig from: %s", cfg.OHTTPKeysURL.String())
 
-	client := &http.Client{Transport: bt}
-	keyResp, err := client.Get(cfg.OHTTPKeysURL.String())
+	keyReq, err := http.NewRequest(http.MethodGet, cfg.OHTTPKeysURL.String(), nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create OHTTP KeyConfig request: %w", err)
+	}
+
+	keyResp, err := keyTransport.RoundTrip(keyReq)
 	if err != nil {
 		return nil, fmt.Errorf("failed to download OHTTP KeyConfig: %w", err)
 	}
@@ -165,9 +184,14 @@ func newObliviousHTTPTransport(
 
 	out.Debug("OHTTP KeyConfig deserialized successfully, KeyID: %d", publicConfig.ID)
 
+	// Create base transport for communicating with the gateway.
+	gwTransport, d, err := newRoundTripper(cfg.OHTTPGatewayURL.Hostname(), cfg, out)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create gateway transport: %w", err)
+	}
+
 	return &obliviousHTTPTransport{
-		d:            d,
-		base:         bt,
+		base:         &transport{d: d, base: gwTransport},
 		gatewayURL:   cfg.OHTTPGatewayURL,
 		publicConfig: publicConfig,
 		out:          out,
