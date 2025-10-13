@@ -25,6 +25,7 @@ jobs:
         with:
           version: v2.5.0
       - name: markdownlint-cli
+        if: matrix.os == 'ubuntu-latest'
         uses: nosborn/github-action-markdown-cli@v3.5.0
         with:
           files: .
