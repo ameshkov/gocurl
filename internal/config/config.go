@@ -125,6 +125,14 @@ type Config struct {
 	// optional configuration.
 	Experiments map[Experiment]string
 
+	// OHTTPGatewayURL is the URL of the Oblivious HTTP gateway where the
+	// request should be sent.
+	OHTTPGatewayURL *url.URL
+
+	// OHTTPKeysURL is the URL from which to retrieve Oblivious HTTP KeyConfig
+	// to use for encrypting the request.
+	OHTTPKeysURL *url.URL
+
 	// Verbose defines whether we should write the DEBUG-level log or not.
 	Verbose bool
 
@@ -295,6 +303,24 @@ func ParseConfig(args []string) (cfg *Config, err error) {
 		cfg.Experiments, err = parseExperiments(opts.Experiments)
 		if err != nil {
 			return nil, fmt.Errorf("invalid experiments %v: %w", opts.Experiments, err)
+		}
+	}
+
+	// Parse and validate OHTTP options.
+	if opts.OHTTPGatewayURL != "" || opts.OHTTPKeysURL != "" {
+		// Both arguments must be specified together.
+		if opts.OHTTPGatewayURL == "" || opts.OHTTPKeysURL == "" {
+			return nil, fmt.Errorf("both --ohttp-gateway-url and --ohttp-keys-url must be specified")
+		}
+
+		cfg.OHTTPGatewayURL, err = url.Parse(opts.OHTTPGatewayURL)
+		if err != nil {
+			return nil, fmt.Errorf("invalid OHTTP gateway URL %s: %w", opts.OHTTPGatewayURL, err)
+		}
+
+		cfg.OHTTPKeysURL, err = url.Parse(opts.OHTTPKeysURL)
+		if err != nil {
+			return nil, fmt.Errorf("invalid OHTTP keys URL %s: %w", opts.OHTTPKeysURL, err)
 		}
 	}
 

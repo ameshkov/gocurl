@@ -39,7 +39,7 @@ type clientDialer struct {
 }
 
 // newDialer creates a new instance of the clientDialer.
-func newDialer(cfg *config.Config, out *output.Output) (d *clientDialer, err error) {
+func newDialer(hostname string, cfg *config.Config, out *output.Output) (d *clientDialer, err error) {
 	resolver, err := resolve.NewResolver(cfg, out)
 	if err != nil {
 		return nil, err
@@ -53,7 +53,7 @@ func newDialer(cfg *config.Config, out *output.Output) (d *clientDialer, err err
 	return &clientDialer{
 		cfg:       cfg,
 		out:       out,
-		tlsConfig: createTLSConfig(cfg, out),
+		tlsConfig: createTLSConfig(hostname, cfg, out),
 		resolver:  resolver,
 		dial:      dial,
 	}, nil
@@ -202,9 +202,9 @@ func (r *tlsRandomReader) Read(p []byte) (n int, err error) {
 }
 
 // createTLSConfig creates TLS config based on the configuration.
-func createTLSConfig(cfg *config.Config, out *output.Output) (tlsConfig *tls.Config) {
+func createTLSConfig(hostname string, cfg *config.Config, out *output.Output) (tlsConfig *tls.Config) {
 	tlsConfig = &tls.Config{
-		ServerName: cfg.RequestURL.Hostname(),
+		ServerName: hostname,
 		MinVersion: cfg.TLSMinVersion,
 		MaxVersion: cfg.TLSMaxVersion,
 	}

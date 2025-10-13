@@ -15,6 +15,7 @@ Simplified version of [`curl`](https://curl.se/) written in Go.
 - [New stuff](#newstuff)
     - [Encrypted ClientHello](#ech)
     - [Custom DNS servers](#dns)
+    - [Oblivious HTTP](#ohttp)
     - [Experimental flags](#exp)
         - [Post-quantum cryptography](#pq)
     - [WebSocket support](#websocket)
@@ -228,6 +229,71 @@ gocurl \
       https://example.org/
   ```
 
+<a id="ohttp"></a>
+
+#### Oblivious HTTP
+
+[Oblivious HTTP (OHTTP)][ohttp] is an IETF standard protocol that provides
+end-to-end encryption for HTTP requests and responses while hiding the client's
+identity from the target server. It works by routing encrypted requests through
+a relay and gateway, ensuring that:
+
+- The **relay** sees who is making requests but not what is being requested.
+- The **gateway** sees what is being requested but not who is making the request.
+- The **target server** receives a normal HTTP request from the gateway.
+
+This separation provides strong privacy guarantees, making OHTTP useful for
+privacy-sensitive applications.
+
+`gocurl` has built-in support for OHTTP and can send requests through any
+OHTTP gateway by specifying two command-line arguments:
+
+- `--ohttp-gateway-url` - URL of the OHTTP gateway where the encrypted request
+  will be sent.
+- `--ohttp-keys-url` - URL from which to retrieve the OHTTP KeyConfig needed to
+  encrypt the request.
+
+Here's how to make an OHTTP request to `httpbin.agrd.workers.dev` using a demo
+gateway:
+
+```shell
+gocurl -v \
+  --ohttp-gateway-url "https://httpbin.agrd.workers.dev/ohttp/gateway" \
+  --ohttp-keys-url "https://httpbin.agrd.workers.dev/ohttp/config" \
+  https://httpbin.agrd.workers.dev/get
+```
+
+This command will:
+
+1. Download the OHTTP KeyConfig from the keys URL.
+2. Encrypt your request to `https://httpbin.agrd.workers.dev/get` using OHTTP.
+3. Send the encrypted request to the gateway.
+4. Receive the encrypted response from the gateway.
+5. Decrypt and display the response.
+
+You can also make POST requests through OHTTP:
+
+```shell
+gocurl -v \
+  --ohttp-gateway-url "https://httpbin.agrd.workers.dev/ohttp/gateway" \
+  --ohttp-keys-url "https://httpbin.agrd.workers.dev/ohttp/config" \
+  -d "test data" \
+  https://httpbin.agrd.workers.dev/post
+```
+
+One more example that uses a demo gateway from [Oblivious Network][ohttpdemo]:
+
+```shell
+gocurl -v \
+  --ohttp-gateway-url "https://demo-gateway.oblivious.network/gateway" \
+  --ohttp-keys-url "https://demo-gateway.oblivious.network/ohttp-configs" \
+  https://httpbin.agrd.workers.dev/get
+```
+
+[ohttp]: https://www.ietf.org/rfc/rfc9458.html
+
+[ohttpdemo]: https://docs.oblivious.network/docs/quickstart/
+
 <a id="websocket"></a>
 
 #### WebSocket support
@@ -328,6 +394,10 @@ Application Options:
                                                             gocurl will write everything to stdout.
       --experiment=<name[:value]>                           Allows enabling experimental options. See the documentation
                                                             for available options. Can be specified multiple times.
+      --ohttp-gateway-url=<URL>                             URL of the Oblivious HTTP gateway where the request should
+                                                            be sent.
+      --ohttp-keys-url=<URL>                                URL from which to retrieve Oblivious HTTP KeyConfig to use
+                                                            for encrypting the request.
   -v, --verbose                                             Verbose output (optional).
 
 Help Options:

@@ -14,8 +14,11 @@ adheres to [Semantic Versioning][semver].
 ### Added
 
 - Added `--connect-timeout` command-line argument support. ([#43][#43])
+- Added `--ohttp-gateway-url` and `--ohttp-keys-url` command-line arguments. ([#44][#44])
 
 [#43]: https://github.com/ameshkov/gocurl/issues/43
+
+[#44]: https://github.com/ameshkov/gocurl/issues/44
 
 [unreleased]: https://github.com/ameshkov/gocurl/compare/v1.4.9...HEAD
 
