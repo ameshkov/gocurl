@@ -3,7 +3,6 @@ package config
 import (
 	"encoding/json"
 	"fmt"
-	"os"
 
 	goFlags "github.com/jessevdk/go-flags"
 )
@@ -30,6 +29,10 @@ type Options struct {
 	// ConnectTo allows to override the connection target, i.e. for a request
 	// to the given HOST1:PORT1 pair, connect to HOST2:PORT2 instead.
 	ConnectTo []string `long:"connect-to" description:"For a request to the given HOST1:PORT1 pair, connect to HOST2:PORT2 instead. Can be specified multiple times." value-name:"<HOST1:PORT1:HOST2:PORT2>"`
+
+	// ConnectTimeout limits the maximum time in seconds allowed for the connection
+	// phase. This is applied during proxy connections as well (e.g., SOCKS5).
+	ConnectTimeout int `long:"connect-timeout" description:"Maximum time in seconds allowed for the connection phase." value-name:"<seconds>"`
 
 	// Head signals that the tool should only fetch headers. If specified,
 	// headers will be written to the output.
@@ -128,17 +131,17 @@ func (o *Options) String() (s string) {
 	return string(b)
 }
 
-// parseOptions parses os.Args and creates the Options struct.
-func parseOptions() (o *Options, err error) {
+// parseOptions parses the provided args and creates the Options struct.
+func parseOptions(args []string) (o *Options, err error) {
 	opts := &Options{}
 	parser := goFlags.NewParser(opts, goFlags.Default|goFlags.IgnoreUnknown)
-	remainingArgs, err := parser.ParseArgs(os.Args[1:])
+	remainingArgs, err := parser.ParseArgs(args)
 	if err != nil {
 		return nil, err
 	}
 
 	if len(remainingArgs) != 1 && opts.URL == "" {
-		return nil, fmt.Errorf("URL not found in the arguments: %v", os.Args)
+		return nil, fmt.Errorf("URL not found in the arguments: %v", args)
 	}
 
 	if opts.URL == "" {

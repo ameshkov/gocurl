@@ -26,6 +26,10 @@ release: check-env-release
 	CGO_ENABLED=0 GOOS=$(GOOS) GOARCH=$(GOARCH) go build -ldflags "-X $(VERSIONPKG).version=$(VERSION)" -o $(BUILDDIR)/$(NAME)$(ext)
 	cd $(BASE_BUILDDIR) ; $(archiveCmd)
 
+lint:
+	npx markdownlint-cli .
+	golangci-lint run
+
 test:
 	go test -race -v -bench=. ./...
 

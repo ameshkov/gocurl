@@ -117,6 +117,10 @@ type Config struct {
 	// received data will be written to stdout.
 	OutputPath string
 
+	// ConnectTimeout limits the maximum time in seconds allowed for the
+	// connection phase. Applied to SOCKS5 proxy connections as well.
+	ConnectTimeout int
+
 	// Experiments is a map where the key is Experiment and value is its
 	// optional configuration.
 	Experiments map[Experiment]string
@@ -152,36 +156,37 @@ func NewExperiment(str string) (e Experiment, err error) {
 	return ExpNone, fmt.Errorf("invalid experiment name: %s", str)
 }
 
-// ParseConfig parses and validates os.Args and returns the final *Config
+// ParseConfig parses and validates the provided args and returns the final *Config
 // object.
 //
 // Disable gocyclo for ParseConfig as it's supposed to be a large function with
 // if conditions.
 //
 // nolint:gocyclo
-func ParseConfig() (cfg *Config, err error) {
-	opts, err := parseOptions()
+func ParseConfig(args []string) (cfg *Config, err error) {
+	opts, err := parseOptions(args)
 	if err != nil {
 		return nil, err
 	}
 
 	cfg = &Config{
-		Method:        opts.Method,
-		Head:          opts.Head,
-		Insecure:      opts.Insecure,
-		Data:          opts.Data,
-		OutputJSON:    opts.OutputJSON,
-		OutputPath:    opts.OutputPath,
-		Verbose:       opts.Verbose,
-		ForceHTTP11:   opts.HTTPv11,
-		ForceHTTP2:    opts.HTTPv2,
-		ForceHTTP3:    opts.HTTPv3,
-		ECH:           opts.ECH,
-		ECHGrease:     opts.ECHGrease,
-		IPv4:          opts.IPv4,
-		IPv6:          opts.IPv6,
-		TLSServerName: opts.TLSServerName,
-		RawOptions:    opts,
+		Method:         opts.Method,
+		Head:           opts.Head,
+		Insecure:       opts.Insecure,
+		Data:           opts.Data,
+		OutputJSON:     opts.OutputJSON,
+		OutputPath:     opts.OutputPath,
+		ConnectTimeout: opts.ConnectTimeout,
+		Verbose:        opts.Verbose,
+		ForceHTTP11:    opts.HTTPv11,
+		ForceHTTP2:     opts.HTTPv2,
+		ForceHTTP3:     opts.HTTPv3,
+		ECH:            opts.ECH,
+		ECHGrease:      opts.ECHGrease,
+		IPv4:           opts.IPv4,
+		IPv6:           opts.IPv6,
+		TLSServerName:  opts.TLSServerName,
+		RawOptions:     opts,
 	}
 
 	cfg.RequestURL, err = url.Parse(opts.URL)

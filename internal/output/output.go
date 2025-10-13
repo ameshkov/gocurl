@@ -18,30 +18,51 @@ import (
 	"github.com/ameshkov/gocurl/internal/config"
 )
 
+// Writer is an interface for writing output.
+type Writer interface {
+	io.Writer
+	io.StringWriter
+}
+
 // Output is responsible for all the output, be it logging or writing received
 // data.
 type Output struct {
-	receivedDataFile *os.File
-	logFile          *os.File
-	verbose          bool
+	dataFileWriter Writer
+	logFileWriter  Writer
+	verbose        bool
+	jsonOutput     bool
 }
 
 // NewOutput creates a new instance of Output. path is an optional path to the
 // file where the tool will write the received data. If not specified, this
 // information will be written to stdout. verbose defines whether we need to
-// write extended information.
-func NewOutput(path string, verbose bool) (o *Output, err error) {
-	o = &Output{
-		verbose:          verbose,
-		logFile:          os.Stderr,
-		receivedDataFile: os.Stdout,
-	}
+// write extended information. jsonOutput defines whether errors should be
+// formatted as JSON.
+func NewOutput(path string, verbose bool, jsonOutput bool) (o *Output, err error) {
+	var dataWriter, logWriter Writer
+	dataWriter = os.Stdout
+	logWriter = os.Stderr
 
 	if path != "" {
-		o.receivedDataFile, err = os.OpenFile(path, os.O_WRONLY|os.O_CREATE, 0o644)
+		dataWriter, err = os.OpenFile(path, os.O_WRONLY|os.O_CREATE, 0o644)
 	}
 
+	o = NewOutputWithWriters(dataWriter, logWriter, verbose, jsonOutput)
+
 	return o, err
+}
+
+// NewOutputWithWriters creates a new instance of Output, using the provided
+// dataWriter and logWriter for output and logging respectively. verbose
+// defines whether we need to write extended information. jsonOutput defines
+// whether errors should be formatted as JSON.
+func NewOutputWithWriters(dataWriter Writer, logWriter Writer, verbose bool, jsonOutput bool) (o *Output) {
+	return &Output{
+		dataFileWriter: dataWriter,
+		logFileWriter:  logWriter,
+		verbose:        verbose,
+		jsonOutput:     jsonOutput,
+	}
 }
 
 // Write writes received data to the output path (or stdout if not specified).
@@ -55,11 +76,11 @@ func (o *Output) Write(resp *http.Response, responseBody io.Reader, cfg *config.
 			panic(err)
 		}
 
-		_, err = o.receivedDataFile.Write(b)
+		_, err = o.dataFileWriter.Write(b)
 	} else if responseBody == nil {
-		_, err = o.receivedDataFile.WriteString(responseToString(resp))
+		_, err = o.dataFileWriter.WriteString(responseToString(resp))
 	} else {
-		_, err = io.Copy(o.receivedDataFile, responseBody)
+		_, err = io.Copy(o.dataFileWriter, responseBody)
 	}
 
 	if err != nil {
@@ -73,6 +94,36 @@ func (o *Output) Info(format string, args ...any) {
 	_, err := os.Stderr.WriteString(msg + "\n")
 	if err != nil {
 		panic(err)
+	}
+}
+
+// Error writes an error message. If jsonOutput is enabled, it formats the
+// error as JSON and writes it to the dataFileWriter (stdout by default).
+// Otherwise, it writes a plain text error to stderr.
+func (o *Output) Error(format string, args ...any) {
+	msg := fmt.Sprintf(format, args...)
+
+	if o.jsonOutput {
+		// Write error as JSON to the output file (stdout by default)
+		errorJSON := map[string]string{"error": msg}
+		b, err := json.MarshalIndent(errorJSON, "", "  ")
+		if err != nil {
+			panic(err)
+		}
+		_, err = o.dataFileWriter.Write(b)
+		if err != nil {
+			panic(err)
+		}
+		_, err = o.dataFileWriter.WriteString("\n")
+		if err != nil {
+			panic(err)
+		}
+	} else {
+		// Write plain text error to stderr
+		_, err := o.logFileWriter.WriteString(msg + "\n")
+		if err != nil {
+			panic(err)
+		}
 	}
 }
 

@@ -15,7 +15,7 @@ import (
 )
 
 func TestResolver_LookupHost(t *testing.T) {
-	out, err := output.NewOutput("", false)
+	out, err := output.NewOutput("", false, false)
 	require.NoError(t, err)
 
 	r, err := resolve.NewResolver(&config.Config{}, out)
@@ -27,7 +27,7 @@ func TestResolver_LookupHost(t *testing.T) {
 }
 
 func TestResolver_LookupHost_customServers(t *testing.T) {
-	out, err := output.NewOutput("", false)
+	out, err := output.NewOutput("", false, false)
 	require.NoError(t, err)
 
 	u, err := upstream.AddressToUpstream("tls://1.1.1.1", nil)
@@ -45,7 +45,7 @@ func TestResolver_LookupHost_customServers(t *testing.T) {
 }
 
 func TestResolver_LookupHost_ipAddr(t *testing.T) {
-	out, err := output.NewOutput("", false)
+	out, err := output.NewOutput("", false, false)
 	require.NoError(t, err)
 
 	r, err := resolve.NewResolver(&config.Config{}, out)
@@ -58,7 +58,7 @@ func TestResolver_LookupHost_ipAddr(t *testing.T) {
 }
 
 func TestResolver_LookupHost_preConfigured(t *testing.T) {
-	out, err := output.NewOutput("", false)
+	out, err := output.NewOutput("", false, false)
 	require.NoError(t, err)
 
 	r, err := resolve.NewResolver(&config.Config{
@@ -81,7 +81,7 @@ func TestResolver_LookupHost_preConfigured(t *testing.T) {
 }
 
 func TestResolver_LookupECHConfigs(t *testing.T) {
-	out, err := output.NewOutput("", false)
+	out, err := output.NewOutput("", false, false)
 	require.NoError(t, err)
 
 	r, err := resolve.NewResolver(&config.Config{}, out)
@@ -93,7 +93,7 @@ func TestResolver_LookupECHConfigs(t *testing.T) {
 }
 
 func TestResolver_LookupECHConfigs_preConfigured(t *testing.T) {
-	out, err := output.NewOutput("", false)
+	out, err := output.NewOutput("", false, false)
 	require.NoError(t, err)
 
 	echRR := "AEX+DQBBowAgACA+MDtQ9ShQuke+cqO01oHPiKeg1UDwoyeh5EL+9wfWQwAEAAEAAQASY2xvdWRmbGFyZS1lY2guY29tAAA="
@@ -114,7 +114,7 @@ func TestResolver_LookupECHConfigs_preConfigured(t *testing.T) {
 }
 
 func TestResolver_LookupECHConfigs_empty(t *testing.T) {
-	out, err := output.NewOutput("", false)
+	out, err := output.NewOutput("", false, false)
 	require.NoError(t, err)
 
 	r, err := resolve.NewResolver(&config.Config{}, out)
