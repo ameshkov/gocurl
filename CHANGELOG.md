@@ -11,6 +11,10 @@ adheres to [Semantic Versioning][semver].
 
 ## [Unreleased]
 
+[unreleased]: https://github.com/ameshkov/gocurl/compare/v1.5.0...HEAD
+
+## [1.5.0] - 2025-10-13
+
 ### Added
 
 - Added `--connect-timeout` command-line argument support. ([#43][#43])
@@ -20,7 +24,11 @@ adheres to [Semantic Versioning][semver].
 
 [#44]: https://github.com/ameshkov/gocurl/issues/44
 
-[unreleased]: https://github.com/ameshkov/gocurl/compare/v1.4.9...HEAD
+[See changes][1.5.0changes].
+
+[1.5.0changes]: https://github.com/ameshkov/gocurl/compare/v1.4.9...v1.5.0
+
+[1.5.0]: https://github.com/ameshkov/gocurl/releases/tag/v1.5.0
 
 ## [1.4.9] - 2025-05-19
 
