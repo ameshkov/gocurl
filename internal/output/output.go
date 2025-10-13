@@ -88,10 +88,10 @@ func (o *Output) Write(resp *http.Response, responseBody io.Reader, cfg *config.
 	}
 }
 
-// Info writes INFO-level log to stderr.
+// Info writes INFO-level log to the log file (or stderr).
 func (o *Output) Info(format string, args ...any) {
 	msg := fmt.Sprintf(format, args...)
-	_, err := os.Stderr.WriteString(msg + "\n")
+	_, err := o.logFileWriter.WriteString(msg + "\n")
 	if err != nil {
 		panic(err)
 	}
@@ -133,7 +133,7 @@ func (o *Output) Debug(format string, args ...any) {
 		return
 	}
 
-	_, err := os.Stderr.WriteString(fmt.Sprintf(format, args...) + "\n")
+	_, err := o.logFileWriter.WriteString(fmt.Sprintf(format, args...) + "\n")
 	if err != nil {
 		panic(err)
 	}

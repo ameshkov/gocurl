@@ -63,6 +63,11 @@ func (t *transport) RoundTrip(r *http.Request) (resp *http.Response, err error) 
 // NewTransport creates a new http.RoundTripper that will be used for making
 // the request.
 func NewTransport(cfg *config.Config, out *output.Output) (rt Transport, err error) {
+	// If OHTTP is enabled, use the oblivious HTTP transport.
+	if cfg.OHTTPGatewayURL != nil && cfg.OHTTPKeysURL != nil {
+		return newObliviousHTTPTransport(cfg, out)
+	}
+
 	d, err := newDialer(cfg, out)
 	if err != nil {
 		return nil, err

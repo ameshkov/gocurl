@@ -120,6 +120,12 @@ type Options struct {
 	// Experiments allows to enable experimental configuration options.
 	Experiments []string `long:"experiment" description:"Allows enabling experimental options. See the documentation for available options. Can be specified multiple times." value-name:"<name[:value]>"`
 
+	// OHTTPGatewayURL is the URL of the Oblivious HTTP gateway where the request should be sent.
+	OHTTPGatewayURL string `long:"ohttp-gateway-url" description:"URL of the Oblivious HTTP gateway where the request should be sent." value-name:"<URL>"`
+
+	// OHTTPKeysURL is the URL from which to retrieve Oblivious HTTP KeyConfig.
+	OHTTPKeysURL string `long:"ohttp-keys-url" description:"URL from which to retrieve Oblivious HTTP KeyConfig to use for encrypting the request." value-name:"<URL>"`
+
 	// Verbose defines whether we should write the DEBUG-level log or not.
 	Verbose bool `short:"v" long:"verbose" description:"Verbose output (optional)." optional:"yes" optional-value:"true"`
 }

@@ -5,7 +5,9 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net"
+	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
@@ -354,9 +356,7 @@ func TestRunVerboseOutput(t *testing.T) {
 	require.NoError(t, err)
 
 	// In verbose mode, we should see debug output in the log buffer
-	// Note: Debug() still writes to os.Stderr directly, so we won't see it in logBuffer
-	// But at least verify the command ran successfully
-	assert.NotEmpty(t, dataBuffer.String())
+	assert.NotEmpty(t, logBuffer.String())
 }
 
 // TestRunConnectTimeout tests the --connect-timeout flag.
@@ -398,4 +398,243 @@ func TestRunConnectTimeout(t *testing.T) {
 
 	// Verify the error is related to timeout/connection
 	assert.Contains(t, err.Error(), "timeout")
+}
+
+// TestRunOHTTP tests the Oblivious HTTP support.
+func TestRunOHTTP(t *testing.T) {
+	// Create buffers for output
+	dataBuffer := &bytes.Buffer{}
+	logBuffer := &bytes.Buffer{}
+
+	// Parse config with test arguments using the real OHTTP gateway and keys URL
+	args := []string{
+		"--ohttp-gateway-url", "https://httpbin.agrd.workers.dev/ohttp/gateway",
+		"--ohttp-keys-url", "https://httpbin.agrd.workers.dev/ohttp/config",
+		"https://httpbin.agrd.workers.dev/get",
+	}
+	cfg, err := config.ParseConfig(args)
+	require.NoError(t, err)
+
+	// Create output with mock writers
+	out := output.NewOutputWithWriters(dataBuffer, logBuffer, cfg.Verbose, cfg.OutputJSON)
+
+	// Run the command
+	err = cmd.Run(cfg, out)
+	require.NoError(t, err)
+
+	// Verify the output
+	data := dataBuffer.String()
+
+	// httpbin /get returns JSON with the request details
+	// The response should contain JSON content
+	assert.Contains(t, data, "application/json")
+
+	// Log the actual output for debugging
+	t.Logf("Response data: %s", data)
+}
+
+// TestOHTTPInvalidOptions tests that invalid OHTTP option combinations are rejected.
+func TestOHTTPInvalidOptions(t *testing.T) {
+	testCases := []struct {
+		name        string
+		args        []string
+		expectedErr string
+	}{
+		{
+			name: "only_gateway_url",
+			args: []string{
+				"--ohttp-gateway-url", "https://example.com/gateway",
+				"https://example.com/get",
+			},
+			expectedErr: "both --ohttp-gateway-url and --ohttp-keys-url must be specified",
+		},
+		{
+			name: "only_keys_url",
+			args: []string{
+				"--ohttp-keys-url", "https://example.com/config",
+				"https://example.com/get",
+			},
+			expectedErr: "both --ohttp-gateway-url and --ohttp-keys-url must be specified",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Parse config with invalid arguments
+			_, err := config.ParseConfig(tc.args)
+
+			// Verify that an error is returned
+			require.Error(t, err)
+
+			// Verify the error message contains the expected text
+			assert.Contains(t, err.Error(), tc.expectedErr)
+		})
+	}
+}
+
+// TestOHTTPValidOptions tests that valid OHTTP option combinations are accepted.
+func TestOHTTPValidOptions(t *testing.T) {
+	// Parse config with both OHTTP arguments specified
+	args := []string{
+		"--ohttp-gateway-url", "https://example.com/gateway",
+		"--ohttp-keys-url", "https://example.com/config",
+		"https://example.com/get",
+	}
+	cfg, err := config.ParseConfig(args)
+
+	// Verify that no error is returned
+	require.NoError(t, err)
+
+	// Verify that both URLs are parsed correctly
+	assert.NotNil(t, cfg.OHTTPGatewayURL)
+	assert.Equal(t, "https://example.com/gateway", cfg.OHTTPGatewayURL.String())
+	assert.NotNil(t, cfg.OHTTPKeysURL)
+	assert.Equal(t, "https://example.com/config", cfg.OHTTPKeysURL.String())
+}
+
+// createTestProxy creates a test HTTP CONNECT proxy server that tracks requests.
+// Returns the proxy server and a pointer to a boolean that indicates if the proxy
+// received a request.
+func createTestProxy() (*httptest.Server, *bool) {
+	proxyReceived := false
+
+	proxy := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Mark that proxy received a request
+		proxyReceived = true
+
+		// Only handle CONNECT method (tunnel)
+		if r.Method != http.MethodConnect {
+			http.Error(w, "Only CONNECT is supported", http.StatusMethodNotAllowed)
+			return
+		}
+
+		// Extract target address from the request
+		targetAddr := r.Host
+
+		// Connect to the target server
+		targetConn, err := net.Dial("tcp", targetAddr)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Failed to connect to target: %v", err), http.StatusBadGateway)
+			return
+		}
+		defer func() {
+			_ = targetConn.Close()
+		}()
+
+		// Hijack the connection to handle the tunnel
+		hijacker, ok := w.(http.Hijacker)
+		if !ok {
+			http.Error(w, "Hijacking not supported", http.StatusInternalServerError)
+			return
+		}
+
+		clientConn, _, err := hijacker.Hijack()
+		if err != nil {
+			http.Error(w, fmt.Sprintf("Failed to hijack connection: %v", err), http.StatusInternalServerError)
+			return
+		}
+		defer func() {
+			_ = clientConn.Close()
+		}()
+
+		// Send 200 Connection Established response
+		_, err = clientConn.Write([]byte("HTTP/1.1 200 Connection Established\r\n\r\n"))
+		if err != nil {
+			return
+		}
+
+		// Start bidirectional copying between client and target
+		done := make(chan struct{}, 2)
+
+		go func() {
+			_, _ = io.Copy(targetConn, clientConn)
+			done <- struct{}{}
+		}()
+
+		go func() {
+			_, _ = io.Copy(clientConn, targetConn)
+			done <- struct{}{}
+		}()
+
+		// Wait for either direction to complete
+		<-done
+	}))
+
+	return proxy, &proxyReceived
+}
+
+// TestRunWithProxy tests that the proxy argument works correctly.
+func TestRunWithProxy(t *testing.T) {
+	// Create httpbin test server (our target)
+	handler := httpbin.New()
+	server := httptest.NewServer(handler.Handler())
+	defer server.Close()
+
+	// Create a test proxy server
+	proxy, proxyReceived := createTestProxy()
+	defer proxy.Close()
+
+	// Create buffers for output
+	dataBuffer := &bytes.Buffer{}
+	logBuffer := &bytes.Buffer{}
+
+	// Parse config with proxy argument
+	args := []string{
+		"-x", proxy.URL,
+		server.URL + "/get",
+	}
+	cfg, err := config.ParseConfig(args)
+	require.NoError(t, err)
+
+	// Create output with mock writers
+	out := output.NewOutputWithWriters(dataBuffer, logBuffer, cfg.Verbose, cfg.OutputJSON)
+
+	// Run the command
+	err = cmd.Run(cfg, out)
+	require.NoError(t, err)
+
+	// Verify the request went through the proxy
+	assert.True(t, *proxyReceived, "Request should have gone through the proxy")
+
+	// Verify the output contains the expected response from httpbin
+	data := dataBuffer.String()
+	assert.Contains(t, data, server.URL+"/get")
+}
+
+// TestRunOHTTPWithProxy tests that OHTTP works correctly with a proxy.
+func TestRunOHTTPWithProxy(t *testing.T) {
+	// Create a test proxy server
+	proxy, proxyReceived := createTestProxy()
+	defer proxy.Close()
+
+	// Create buffers for output
+	dataBuffer := &bytes.Buffer{}
+	logBuffer := &bytes.Buffer{}
+
+	// Parse config with OHTTP arguments and proxy using the real OHTTP gateway
+	args := []string{
+		"-x", proxy.URL,
+		"--ohttp-gateway-url", "https://httpbin.agrd.workers.dev/ohttp/gateway",
+		"--ohttp-keys-url", "https://httpbin.agrd.workers.dev/ohttp/config",
+		"https://httpbin.agrd.workers.dev/get",
+	}
+	cfg, err := config.ParseConfig(args)
+	require.NoError(t, err)
+
+	// Create output with mock writers
+	out := output.NewOutputWithWriters(dataBuffer, logBuffer, cfg.Verbose, cfg.OutputJSON)
+
+	// Run the command
+	err = cmd.Run(cfg, out)
+	require.NoError(t, err)
+
+	// Verify the request went through the proxy
+	assert.True(t, *proxyReceived, "OHTTP request should have gone through the proxy")
+
+	// Verify the output contains JSON content (OHTTP response)
+	data := dataBuffer.String()
+	assert.Contains(t, data, "application/json")
+
+	// Log the actual output for debugging
+	t.Logf("Response data: %s", data)
 }

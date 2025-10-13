@@ -23,6 +23,7 @@ require (
 	github.com/aead/poly1305 v0.0.0-20180717145839-3fee0db0b635 // indirect
 	github.com/ameshkov/dnscrypt/v2 v2.3.0 // indirect
 	github.com/ameshkov/dnsstamps v1.0.3 // indirect
+	github.com/chris-wood/ohttp-go v0.0.0-20230523152405-45fb0d05eb13 // indirect
 	github.com/cloudflare/circl v1.6.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/go-task/slim-sprig v0.0.0-20230315185526-52ccab3ef572 // indirect
