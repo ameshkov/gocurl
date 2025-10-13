@@ -8,8 +8,8 @@ import (
 	"golang.org/x/net/proxy"
 )
 
-// socksTimeout is the default timeout to use for connecting to the socks proxy.
-const socksTimeout int = 60
+// defaultSocksTimeout is the default timeout to use for connecting to the socks proxy.
+const defaultSocksTimeout int = 60
 
 // socks5Dialer is a wrapper over socks5.Client that adds support for proxying
 // UDP over SOCKS5.
@@ -55,8 +55,9 @@ func (d *socks5Dialer) Dial(network, addr string) (conn net.Conn, err error) {
 
 // createSOCKS5ProxyDialer creates a proxy.Dialer that connects to a SOCKS5
 // proxy. The difference with the built-in proxy support is that it supports
-// proxying UDP traffic.
-func createSOCKS5ProxyDialer(u *url.URL) (d proxy.Dialer, err error) {
+// proxying UDP traffic. connectTimeoutSecs is the timeout in seconds for
+// connecting to the proxy. If 0, uses the default timeout.
+func createSOCKS5ProxyDialer(u *url.URL, connectTimeoutSecs int) (d proxy.Dialer, err error) {
 	var addr, username, password string
 
 	if u.User != nil {
@@ -72,7 +73,12 @@ func createSOCKS5ProxyDialer(u *url.URL) (d proxy.Dialer, err error) {
 	}
 	addr = net.JoinHostPort(u.Hostname(), port)
 
-	client, err := socks5.NewClient(addr, username, password, socksTimeout, socksTimeout)
+	timeout := connectTimeoutSecs
+	if timeout == 0 {
+		timeout = defaultSocksTimeout
+	}
+
+	client, err := socks5.NewClient(addr, username, password, timeout, timeout)
 	if err != nil {
 		return nil, err
 	}

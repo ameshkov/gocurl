@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"time"
 
 	"github.com/ameshkov/gocurl/internal/client/cfcrypto"
 	"github.com/ameshkov/gocurl/internal/client/connectto"
@@ -137,12 +138,15 @@ func createDialFunc(
 	cfg *config.Config,
 	out *output.Output,
 ) (dial dialer.DialFunc, err error) {
-	d := dialer.NewDirect(resolver, out)
+	// Convert ConnectTimeout to time.Duration
+	connectTimeout := time.Duration(cfg.ConnectTimeout) * time.Second
+
+	d := dialer.NewDirect(resolver, out, connectTimeout)
 	dial = d.Dial
 
 	if cfg.ProxyURL != nil {
 		var proxyDialer dialer.Dialer
-		proxyDialer, err = proxy.NewProxyDialer(cfg.ProxyURL, dial, out)
+		proxyDialer, err = proxy.NewProxyDialer(cfg.ProxyURL, dial, out, connectTimeout)
 		if err != nil {
 			return nil, err
 		}

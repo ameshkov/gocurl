@@ -25,7 +25,7 @@ func Main() {
 		os.Exit(0)
 	}
 
-	cfg, err := config.ParseConfig()
+	cfg, err := config.ParseConfig(os.Args[1:])
 	var flagErr *goFlags.Error
 	if errors.As(err, &flagErr) && flagErr.Type == goFlags.ErrHelp {
 		// This is a special case when we exit process here as we received
@@ -39,25 +39,30 @@ func Main() {
 		os.Exit(1)
 	}
 
-	out, err := output.NewOutput(cfg.OutputPath, cfg.Verbose)
+	out, err := output.NewOutput(cfg.OutputPath, cfg.Verbose, cfg.OutputJSON)
 	if err != nil {
 		panic(err)
 	}
 
+	if err := Run(cfg, out); err != nil {
+		out.Error("%v", err)
+		os.Exit(1)
+	}
+}
+
+// Run executes the main logic of the gocurl command with the provided config
+// and output. This function is extracted to make it testable.
+func Run(cfg *config.Config, out *output.Output) error {
 	out.Debug("Starting gocurl %s with arguments:\n%s", version.Version(), cfg.RawOptions)
 
 	transport, err := client.NewTransport(cfg, out)
 	if err != nil {
-		out.Info("Failed to create HTTP transport: %v", err)
-
-		os.Exit(1)
+		return fmt.Errorf("failed to create HTTP transport: %w", err)
 	}
 
 	req, err := client.NewRequest(cfg)
 	if err != nil {
-		out.Info("Failed to create request: %v", err)
-
-		os.Exit(1)
+		return fmt.Errorf("failed to create request: %w", err)
 	}
 
 	// This is a strange thing, but for the sake of logging WITH the request
@@ -69,9 +74,7 @@ func Main() {
 
 	resp, err := transport.RoundTrip(req)
 	if err != nil {
-		out.Info("Failed to make request: %v", err)
-
-		os.Exit(1)
+		return fmt.Errorf("failed to make request: %w", err)
 	}
 
 	defer func(body io.ReadCloser) {
@@ -115,4 +118,6 @@ func Main() {
 
 	// Write the response contents to the output.
 	out.Write(resp, responseBody, cfg)
+
+	return nil
 }

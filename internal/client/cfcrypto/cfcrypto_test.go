@@ -22,7 +22,7 @@ func TestHandshake_encryptedClientHello(t *testing.T) {
 	const privateDomain = "cloudflare.com"
 	const path = "cdn-cgi/trace"
 
-	out, err := output.NewOutput("", false)
+	out, err := output.NewOutput("", false, false)
 	require.NoError(t, err)
 
 	cfg := &config.Config{ECH: true}
@@ -75,7 +75,7 @@ func TestHandshake_postQuantum(t *testing.T) {
 	const domainName = "cloudflare.com"
 	const path = "cdn-cgi/trace"
 
-	out, err := output.NewOutput("", false)
+	out, err := output.NewOutput("", false, false)
 	require.NoError(t, err)
 
 	conn, err := net.Dial("tcp", fmt.Sprintf("%s:443", domainName))

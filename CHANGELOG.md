@@ -11,13 +11,19 @@ adheres to [Semantic Versioning][semver].
 
 ## [Unreleased]
 
+### Added
+
+- Added `--connect-timeout` command-line argument support. ([#43][#43])
+
+[#43]: https://github.com/ameshkov/gocurl/issues/43
+
 [unreleased]: https://github.com/ameshkov/gocurl/compare/v1.4.9...HEAD
 
 ## [1.4.9] - 2025-05-19
 
 ### Fixed
 
-* Fixed the issue with `--tls-random` when it's used with `--ech`. ([#38][#38])
+- Fixed the issue with `--tls-random` when it's used with `--ech`. ([#38][#38])
 
 [See changes][1.4.9changes].
 
@@ -31,7 +37,7 @@ adheres to [Semantic Versioning][semver].
 
 ### Added
 
-* Added support for `--tls-random` command-line argument. This option is used to
+- Added support for `--tls-random` command-line argument. This option is used to
   enable TLS Random for TLS ClientHello. ([#35][#35])
 
 [See changes][1.4.8changes].
@@ -46,7 +52,7 @@ adheres to [Semantic Versioning][semver].
 
 ### Added
 
-* Added support for `--echgrease` command-line argument. This option is used to
+- Added support for `--echgrease` command-line argument. This option is used to
   enable ECH Grease for TLS ClientHello.
 
 [See changes][1.4.7changes].
@@ -59,8 +65,8 @@ adheres to [Semantic Versioning][semver].
 
 ### Fixed
 
-* Cannot set User Agent via headers. ([#34][#34])
-* `--insecure` flag is not respected by DNS upstreams. ([#30][#30])
+- Cannot set User Agent via headers. ([#34][#34])
+- `--insecure` flag is not respected by DNS upstreams. ([#30][#30])
 
 [See changes][1.4.6changes].
 
@@ -76,11 +82,11 @@ adheres to [Semantic Versioning][semver].
 
 ### Added
 
-* Added `http` and `https` proxies support. ([#31][#31])
+- Added `http` and `https` proxies support. ([#31][#31])
 
 ### Fixed
 
-* Panic when `--json-output` is specified and failed to read response body.
+- Panic when `--json-output` is specified and failed to read response body.
 
 [See changes][1.4.5changes].
 
@@ -94,10 +100,10 @@ adheres to [Semantic Versioning][semver].
 
 ### Changed
 
-* Updated dependenceis.
-* `--ech` no more fails when there's no ECH configuration for the domain, it
+- Updated dependenceis.
+- `--ech` no more fails when there's no ECH configuration for the domain, it
   just falls back to regular TLS and prints a warning.
-* Use MLKEM for post-quantum key exchange when `--experiment` is used.
+- Use MLKEM for post-quantum key exchange when `--experiment` is used.
 
 [See changes][1.4.4changes].
 
@@ -109,12 +115,12 @@ adheres to [Semantic Versioning][semver].
 
 ### Added
 
-* Added support for the `--tls-servername` argument.
+- Added support for the `--tls-servername` argument.
 
 ### Changed
 
-* Use `http` as the default scheme.  ([#27][#27])
-* Updated dependencies, now using newer versions of quic-go, dnsproxy, cfcrypto.
+- Use `http` as the default scheme.  ([#27][#27])
+- Updated dependencies, now using newer versions of quic-go, dnsproxy, cfcrypto.
 
 [See changes][1.4.3changes].
 
@@ -128,8 +134,8 @@ adheres to [Semantic Versioning][semver].
 
 ### Added
 
-* Added support for the `--tls-max` argument.
-* Added support for the `--ciphers` argument.
+- Added support for the `--tls-max` argument.
+- Added support for the `--ciphers` argument.
 
 [See changes][1.4.2changes].
 
@@ -141,14 +147,14 @@ adheres to [Semantic Versioning][semver].
 
 ### Added
 
-* Added support for `--ipv4` and `--ipv6` arguments.  ([#25][#25])
-* Added [a Docker image][dockerimage] for `gocurl`.
+- Added support for `--ipv4` and `--ipv6` arguments.  ([#25][#25])
+- Added [a Docker image][dockerimage] for `gocurl`.
 
 ### Fixed
 
-* Fixed a bug introduced in v1.4.0 with `gocurl` not printing the response body
+- Fixed a bug introduced in v1.4.0 with `gocurl` not printing the response body
   when the protocol is HTTP/2 or HTTP/3.  ([#26][#26])
-* Fixed unnecessary warning `connection doesn't allow setting of receive buffer
+- Fixed unnecessary warning `connection doesn't allow setting of receive buffer
   size` when HTTP/3 is used.
 
 [See changes][1.4.1changes].
@@ -167,7 +173,7 @@ adheres to [Semantic Versioning][semver].
 
 ### Added
 
-* Added initial WebSocket support. `gocurl` now supports `ws://` and `wss://`
+- Added initial WebSocket support. `gocurl` now supports `ws://` and `wss://`
   URLs. `-d` can be used to specify initial data to send.  ([#17][#17])
 
 [See changes][1.4.0changes].
@@ -182,13 +188,13 @@ adheres to [Semantic Versioning][semver].
 
 ### Added
 
-* Added an option to use Post-Quantum secure algorithms for establishing TLS
+- Added an option to use Post-Quantum secure algorithms for establishing TLS
   connections. This option is hidden under a new `--experiment` flag that is
   described in README.md. ([#15][#15])
 
 ### Fixed
 
-* Fixed an issue with `--http2` not being able to work together with `--ech`. In
+- Fixed an issue with `--http2` not being able to work together with `--ech`. In
   addition to that there's also one more change: `gocurl` by default will send
   both `h2` and `http/1.1` in TLS ALPN extension and use the protocol selected
   by the server. ([#14][#14])
@@ -207,13 +213,13 @@ adheres to [Semantic Versioning][semver].
 
 ### Added
 
-* Added `--dns-servers` command-line argument support. Besides regular DNS,
+- Added `--dns-servers` command-line argument support. Besides regular DNS,
   `gocurl` also supports encrypted DNS, see examples in README.md to learn
   more. ([#6][#6])
 
 ### Fixed
 
-* TLS state is now printed to the output for ECH-enabled connections. In
+- TLS state is now printed to the output for ECH-enabled connections. In
   addition to that, much more TLS-related information is printed to the output
   including information about TLS certificates. ([#8][#8])
 
@@ -231,9 +237,9 @@ adheres to [Semantic Versioning][semver].
 
 ### Added
 
-* `gocurl` now supports Encrypted Client Hello. Added `--ech` and `--echconfig`
+- `gocurl` now supports Encrypted Client Hello. Added `--ech` and `--echconfig`
   command-line arguments, see examples in README.md to learn more. ([#3][#3])
-* Added `--resolve` command-line argument support. It works similarly to the one
+- Added `--resolve` command-line argument support. It works similarly to the one
   in `curl` with one important difference: `gocurl` ignores `port` there and
   simply returns specified IP addresses for the host. ([#5][#5])
 
@@ -251,7 +257,7 @@ adheres to [Semantic Versioning][semver].
 
 ### Added
 
-* `--connect-to` and `--proxy` now also support HTTP/3. ([#1][#1])
+- `--connect-to` and `--proxy` now also support HTTP/3. ([#1][#1])
 
 [See changes][1.0.6changes].
 
@@ -265,15 +271,15 @@ adheres to [Semantic Versioning][semver].
 
 ### Added
 
-* Added the changelog.
+- Added the changelog.
 
 ### Changed
 
-* Added more debug logging to all request stages.
+- Added more debug logging to all request stages.
 
 ### Fixed
 
-* Fixed the way `--connect-to` works when a proxy is specified. Before this
+- Fixed the way `--connect-to` works when a proxy is specified. Before this
   change gocurl could only redirect the proxy connection, but not the one that
   goes through proxy. This behavior is now fixed.
 
@@ -287,7 +293,7 @@ adheres to [Semantic Versioning][semver].
 
 ### Fixed
 
-* Fixed the issue with the output being written not to stdout by default.
+- Fixed the issue with the output being written not to stdout by default.
 
 [See changes][1.0.4changes].
 
@@ -299,7 +305,7 @@ adheres to [Semantic Versioning][semver].
 
 ### Fixed
 
-* Minor improvements.
+- Minor improvements.
 
 [See changes][1.0.3changes].
 
@@ -311,7 +317,7 @@ adheres to [Semantic Versioning][semver].
 
 ### Added
 
-* Automate the release process.
+- Automate the release process.
 
 [See changes][1.0.2changes].
 
@@ -323,7 +329,7 @@ adheres to [Semantic Versioning][semver].
 
 ### Fixed
 
-* Logging improvements.
+- Logging improvements.
 
 [See changes][1.0.1changes].
 
@@ -335,6 +341,6 @@ adheres to [Semantic Versioning][semver].
 
 ### Added
 
-* The first version with base functionality.
+- The first version with base functionality.
 
 [1.0.0]: https://github.com/ameshkov/gocurl/releases/tag/v1.0.0

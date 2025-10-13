@@ -16,9 +16,10 @@ import (
 
 // httpProxyDialer implements proxy.Dialer for HTTP and HTTPS proxies.
 type httpProxyDialer struct {
-	proxyURL  *url.URL
-	forward   proxy.Dialer
-	tlsConfig *tls.Config
+	proxyURL       *url.URL
+	forward        proxy.Dialer
+	tlsConfig      *tls.Config
+	connectTimeout time.Duration
 }
 
 // type check
@@ -41,7 +42,11 @@ func (d *httpProxyDialer) Dial(network, addr string) (net.Conn, error) {
 	if d.proxyURL.Scheme == "https" {
 		tlsConn := tls.Client(proxyConn, d.tlsConfig)
 		// Set a deadline for the TLS handshake
-		if err = tlsConn.SetDeadline(time.Now().Add(30 * time.Second)); err != nil {
+		tlsTimeout := 30 * time.Second
+		if d.connectTimeout > 0 {
+			tlsTimeout = d.connectTimeout
+		}
+		if err = tlsConn.SetDeadline(time.Now().Add(tlsTimeout)); err != nil {
 			log.OnCloserError(proxyConn, log.DEBUG)
 
 			return nil, fmt.Errorf("failed to set TLS handshake deadline: %w", err)
@@ -108,7 +113,12 @@ func (d *httpProxyDialer) Dial(network, addr string) (net.Conn, error) {
 }
 
 // createHTTPProxyDialer creates a proxy.Dialer for HTTP or HTTPS proxies.
-func createHTTPProxyDialer(proxyURL *url.URL, forward proxy.Dialer) (proxy.Dialer, error) {
+// connectTimeout is the timeout for the connection phase. If 0, uses default timeout.
+func createHTTPProxyDialer(
+	proxyURL *url.URL,
+	forward proxy.Dialer,
+	connectTimeout time.Duration,
+) (proxy.Dialer, error) {
 	// Set default port if not specified
 	if proxyURL.Port() == "" {
 		switch proxyURL.Scheme {
@@ -128,8 +138,9 @@ func createHTTPProxyDialer(proxyURL *url.URL, forward proxy.Dialer) (proxy.Diale
 	}
 
 	return &httpProxyDialer{
-		proxyURL:  proxyURL,
-		forward:   forward,
-		tlsConfig: tlsConfig,
+		proxyURL:       proxyURL,
+		forward:        forward,
+		tlsConfig:      tlsConfig,
+		connectTimeout: connectTimeout,
 	}, nil
 }
