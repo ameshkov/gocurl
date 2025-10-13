@@ -369,7 +369,7 @@ func TestRunConnectTimeout(t *testing.T) {
 	// Create a listener that doesn't accept connections to simulate a timeout
 	listener, err := net.Listen("tcp", "127.0.0.1:0")
 	require.NoError(t, err)
-	log.OnCloserError(listener, log.DEBUG)
+	defer log.OnCloserError(listener, log.DEBUG)
 
 	// Get the actual port the listener is bound to
 	listenerAddr := listener.Addr().(*net.TCPAddr)
