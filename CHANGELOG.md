@@ -11,6 +11,10 @@ adheres to [Semantic Versioning][semver].
 
 ## [Unreleased]
 
+### Fixed
+
+- Fixed unexpected panic when the server stops responding unexpectedly.
+
 [unreleased]: https://github.com/ameshkov/gocurl/compare/v1.5.0...HEAD
 
 ## [1.5.0] - 2025-10-13

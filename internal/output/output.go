@@ -84,7 +84,8 @@ func (o *Output) Write(resp *http.Response, responseBody io.Reader, cfg *config.
 	}
 
 	if err != nil {
-		panic(err)
+		msg := fmt.Sprintf("Failed to write response: %v", err)
+		_, _ = o.logFileWriter.WriteString(msg + "\n")
 	}
 }
 
