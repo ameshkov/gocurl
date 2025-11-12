@@ -9,6 +9,7 @@ import (
 	"net"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"strings"
 	"testing"
 
@@ -560,6 +561,53 @@ func TestRunOHTTPWithProxy(t *testing.T) {
 	// Verify the output contains JSON content (OHTTP response)
 	data := dataBuffer.String()
 	assert.Contains(t, data, "application/json")
+}
+
+// TestRunWithConnectTo tests the --connect-to flag functionality.
+func TestRunWithConnectTo(t *testing.T) {
+	// Create httpbin test server (our actual target)
+	handler := httpbin.New()
+	server := httptest.NewServer(handler.Handler())
+	defer server.Close()
+
+	// Parse the server URL to extract host and port
+	serverURL, err := url.Parse(server.URL)
+	require.NoError(t, err)
+
+	// Create buffers for output
+	dataBuffer := &bytes.Buffer{}
+	logBuffer := &bytes.Buffer{}
+
+	// Create a fake hostname that will be redirected to the real server
+	fakeHost := "fake.example.com:80"
+
+	// Parse config with --connect-to argument
+	// Format: HOST1:PORT1:HOST2:PORT2
+	// We redirect fake.example.com:80 to the actual test server
+	connectToValue := fmt.Sprintf("fake.example.com:80:%s", serverURL.Host)
+	args := []string{
+		"--connect-to", connectToValue,
+		"http://fake.example.com:80/get",
+	}
+	cfg, err := config.ParseConfig(args)
+	require.NoError(t, err)
+
+	// Verify the connect-to mapping was parsed correctly
+	require.NotNil(t, cfg.ConnectTo)
+	require.Equal(t, serverURL.Host, cfg.ConnectTo[fakeHost])
+
+	// Create output with mock writers
+	out := output.NewOutputWithWriters(dataBuffer, logBuffer, cfg.Verbose, cfg.OutputJSON)
+
+	// Run the command
+	err = cmd.Run(cfg, out)
+	require.NoError(t, err)
+
+	// Verify the output contains the expected response from httpbin
+	data := dataBuffer.String()
+
+	// The response should contain data from httpbin's /get endpoint
+	assert.Contains(t, data, "fake.example.com")
 }
 
 // createTestProxy creates a test HTTP CONNECT proxy server that tracks requests.
