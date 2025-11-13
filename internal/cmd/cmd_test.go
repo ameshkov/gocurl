@@ -2,22 +2,31 @@ package cmd_test
 
 import (
 	"bytes"
+	"crypto/rand"
+	"crypto/rsa"
+	"crypto/tls"
+	"crypto/x509"
+	"crypto/x509/pkix"
 	"encoding/base64"
 	"encoding/json"
+	"encoding/pem"
 	"fmt"
 	"io"
+	"math/big"
 	"net"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/AdguardTeam/golibs/log"
 	"github.com/ameshkov/gocurl/internal/cmd"
 	"github.com/ameshkov/gocurl/internal/config"
 	"github.com/ameshkov/gocurl/internal/output"
 	"github.com/mccutchen/go-httpbin/v2/httpbin"
+	"github.com/quic-go/quic-go/http3"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -610,6 +619,43 @@ func TestRunWithConnectTo(t *testing.T) {
 	assert.Contains(t, data, "fake.example.com")
 }
 
+// TestRunWithHTTP3 tests the --http3 flag with an actual HTTP/3 server.
+func TestRunWithHTTP3(t *testing.T) {
+	// Create an HTTP/3 test server
+	h3Server, serverAddr := createTestHTTP3Server(t)
+	defer func() {
+		_ = h3Server.Close()
+	}()
+
+	// Create buffers for output
+	dataBuffer := &bytes.Buffer{}
+	logBuffer := &bytes.Buffer{}
+
+	// Parse config with --http3 flag
+	// Use --insecure to skip certificate verification for the test server
+	args := []string{
+		"--http3",
+		"--insecure",
+		"https://" + serverAddr + "/get",
+	}
+	cfg, err := config.ParseConfig(args)
+	require.NoError(t, err)
+
+	// Verify that ForceHTTP3 is set to true
+	assert.True(t, cfg.ForceHTTP3, "ForceHTTP3 should be set to true when --http3 flag is used")
+
+	// Create output with mock writers
+	out := output.NewOutputWithWriters(dataBuffer, logBuffer, cfg.Verbose, cfg.OutputJSON)
+
+	// Run the command
+	err = cmd.Run(cfg, out)
+	require.NoError(t, err)
+
+	// Verify the output contains the expected response
+	data := dataBuffer.String()
+	assert.Contains(t, data, "HTTP/3 test response", "Response should contain HTTP/3 test data")
+}
+
 // createTestProxy creates a test HTTP CONNECT proxy server that tracks requests.
 // Returns the proxy server and a pointer to a boolean that indicates if the proxy
 // received a request.
@@ -679,4 +725,84 @@ func createTestProxy() (*httptest.Server, *bool) {
 	}))
 
 	return proxy, &proxyReceived
+}
+
+// createTestHTTP3Server creates a test HTTP/3 server using quic-go.
+// Returns the server and its address.
+func createTestHTTP3Server(t *testing.T) (server *http3.Server, addr string) {
+	// Create a simple handler that returns test data
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write([]byte(`{"message": "HTTP/3 test response", "url": "` + r.URL.String() + `"}`))
+	})
+
+	// Generate self-signed certificate for testing
+	tlsConfig := generateTestTLSConfig(t)
+
+	// Create HTTP/3 server
+	server = &http3.Server{
+		Handler:   handler,
+		Addr:      "127.0.0.1:0", // Use port 0 to get a random available port
+		TLSConfig: tlsConfig,
+	}
+
+	// Start listening
+	udpConn, err := net.ListenPacket("udp", "127.0.0.1:0")
+	require.NoError(t, err)
+
+	// Get the actual address the server is listening on
+	addr = udpConn.LocalAddr().String()
+
+	// Start the server in a goroutine
+	go func() {
+		_ = server.Serve(udpConn)
+	}()
+
+	return server, addr
+}
+
+// generateTestTLSConfig generates a self-signed certificate dynamically for testing.
+func generateTestTLSConfig(t *testing.T) *tls.Config {
+	// Generate a private key
+	priv, err := rsa.GenerateKey(rand.Reader, 2048)
+	require.NoError(t, err)
+
+	// Create a certificate template
+	notBefore := time.Now()
+	notAfter := notBefore.Add(24 * time.Hour)
+
+	serialNumber, err := rand.Int(rand.Reader, new(big.Int).Lsh(big.NewInt(1), 128))
+	require.NoError(t, err)
+
+	template := x509.Certificate{
+		SerialNumber: serialNumber,
+		Subject: pkix.Name{
+			Organization: []string{"Test Co"},
+		},
+		NotBefore:             notBefore,
+		NotAfter:              notAfter,
+		KeyUsage:              x509.KeyUsageKeyEncipherment | x509.KeyUsageDigitalSignature,
+		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
+		BasicConstraintsValid: true,
+		IPAddresses:           []net.IP{net.ParseIP("127.0.0.1"), net.ParseIP("::1")},
+		DNSNames:              []string{"localhost"},
+	}
+
+	// Create self-signed certificate
+	certDER, err := x509.CreateCertificate(rand.Reader, &template, &template, &priv.PublicKey, priv)
+	require.NoError(t, err)
+
+	// Encode certificate and key to PEM format
+	certPEM := pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: certDER})
+	keyPEM := pem.EncodeToMemory(&pem.Block{Type: "RSA PRIVATE KEY", Bytes: x509.MarshalPKCS1PrivateKey(priv)})
+
+	// Create TLS certificate
+	cert, err := tls.X509KeyPair(certPEM, keyPEM)
+	require.NoError(t, err)
+
+	return &tls.Config{
+		Certificates: []tls.Certificate{cert},
+		NextProtos:   []string{"h3"},
+	}
 }
