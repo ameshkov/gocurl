@@ -13,6 +13,7 @@ adheres to [Semantic Versioning][semver].
 
 ### Fixed
 
+- Fixed using `--http3` together with `--connect-to`.
 - Fixed unexpected panic when the server stops responding unexpectedly.
 
 [unreleased]: https://github.com/ameshkov/gocurl/compare/v1.5.0...HEAD

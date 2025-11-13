@@ -656,6 +656,53 @@ func TestRunWithHTTP3(t *testing.T) {
 	assert.Contains(t, data, "HTTP/3 test response", "Response should contain HTTP/3 test data")
 }
 
+// TestRunWithHTTP3AndConnectTo tests the --http3 flag combined with --connect-to.
+func TestRunWithHTTP3AndConnectTo(t *testing.T) {
+	// Create an HTTP/3 test server (our actual target)
+	h3Server, serverAddr := createTestHTTP3Server(t)
+	defer func() {
+		_ = h3Server.Close()
+	}()
+
+	// Create buffers for output
+	dataBuffer := &bytes.Buffer{}
+	logBuffer := &bytes.Buffer{}
+
+	// Create a fake hostname that will be redirected to the real server
+	fakeHost := "fake-http3.example.com:443"
+
+	// Parse config with --http3 and --connect-to arguments
+	// Format: HOST1:PORT1:HOST2:PORT2
+	// We redirect fake-http3.example.com:443 to the actual test server
+	connectToValue := fmt.Sprintf("fake-http3.example.com:443:%s", serverAddr)
+	args := []string{
+		"--http3",
+		"--insecure",
+		"--connect-to", connectToValue,
+		"https://fake-http3.example.com:443/get",
+	}
+	cfg, err := config.ParseConfig(args)
+	require.NoError(t, err)
+
+	// Verify the connect-to mapping was parsed correctly
+	require.NotNil(t, cfg.ConnectTo)
+	require.Equal(t, serverAddr, cfg.ConnectTo[fakeHost])
+
+	// Verify that ForceHTTP3 is set to true
+	assert.True(t, cfg.ForceHTTP3, "ForceHTTP3 should be set to true when --http3 flag is used")
+
+	// Create output with mock writers
+	out := output.NewOutputWithWriters(dataBuffer, logBuffer, cfg.Verbose, cfg.OutputJSON)
+
+	// Run the command
+	err = cmd.Run(cfg, out)
+	require.NoError(t, err)
+
+	// If the request succeeded (connect-to worked), verify the output
+	data := dataBuffer.String()
+	assert.Contains(t, data, "HTTP/3 test response", "Response should contain HTTP/3 test data")
+}
+
 // createTestProxy creates a test HTTP CONNECT proxy server that tracks requests.
 // Returns the proxy server and a pointer to a boolean that indicates if the proxy
 // received a request.

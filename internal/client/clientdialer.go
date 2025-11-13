@@ -105,9 +105,9 @@ func (d *clientDialer) DialQUIC(
 		return nil, fmt.Errorf("dialer returned not a PacketConn for %s", addr)
 	}
 
-	udpAddr, err := net.ResolveUDPAddr("udp", addr)
-	if err != nil {
-		return nil, err
+	udpAddr, ok := conn.RemoteAddr().(*net.UDPAddr)
+	if !ok {
+		return nil, fmt.Errorf("dialer returned not a UDPAddr for %s", addr)
 	}
 
 	return quic.DialEarly(ctx, uConn, udpAddr, d.tlsConfig, cfg)
