@@ -41,6 +41,9 @@ type Options struct {
 	// Insecure disables TLS verification of the connection.
 	Insecure bool `short:"k" long:"insecure" description:"Disables TLS verification of the connection." optional:"yes" optional-value:"true"`
 
+	// Provide your own CA certificates
+	CACert string `long:"cacert" description:"Path to custom CA certificate file." value-name:"<file>"`
+
 	// TLSv13 forces to use TLS v1.3.
 	TLSv13 bool `long:"tlsv1.3" description:"Forces gocurl to use TLS v1.3 or newer." optional:"yes" optional-value:"true"`
 
