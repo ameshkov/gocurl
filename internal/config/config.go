@@ -8,6 +8,7 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"os"
 	"strconv"
 	"strings"
 
@@ -43,6 +44,9 @@ type Config struct {
 
 	// Insecure disables TLS verification of the connection.
 	Insecure bool
+
+	// Provide your own CA certificates
+	CACert string
 
 	// TLSMinVersion is a minimum supported TLS version.
 	TLSMinVersion uint16
@@ -181,6 +185,7 @@ func ParseConfig(args []string) (cfg *Config, err error) {
 		Method:         opts.Method,
 		Head:           opts.Head,
 		Insecure:       opts.Insecure,
+		CACert:         opts.CACert,
 		Data:           opts.Data,
 		OutputJSON:     opts.OutputJSON,
 		OutputPath:     opts.OutputPath,
@@ -322,6 +327,14 @@ func ParseConfig(args []string) (cfg *Config, err error) {
 		if err != nil {
 			return nil, fmt.Errorf("invalid OHTTP keys URL %s: %w", opts.OHTTPKeysURL, err)
 		}
+	}
+
+	// Handle CA certificate file if specified
+	if opts.CACert != "" {
+		if _, err := os.Stat(opts.CACert); err != nil {
+			return nil, fmt.Errorf("CA certificate file not found %s: %w", opts.CACert, err)
+		}
+		cfg.CACert = opts.CACert
 	}
 
 	return cfg, nil

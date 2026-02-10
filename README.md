@@ -356,6 +356,8 @@ Application Options:
       --connect-timeout=<seconds>                           Maximum time in seconds allowed for the connection phase.
   -I, --head                                                Fetch the headers only.
   -k, --insecure                                            Disables TLS verification of the connection.
+      --cacert=<file>                                       Path to custom CA
+                                                            certificate file.
       --tlsv1.3                                             Forces gocurl to use TLS v1.3 or newer.
       --tlsv1.2                                             Forces gocurl to use TLS v1.2 or newer.
       --tls-max=<VERSION>                                   (TLS) VERSION defines maximum supported TLS version. Can be
