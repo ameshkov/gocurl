@@ -11,13 +11,21 @@ adheres to [Semantic Versioning][semver].
 
 ## [Unreleased]
 
+[unreleased]: https://github.com/ameshkov/gocurl/compare/v1.5.0...HEAD
+
+## [1.5.1] - 2026-02-25
+
 ### Fixed
 
 - Fixed using `--http3` together with `--connect-to`.
 - Fixed unexpected panic when the server stops responding unexpectedly.
 - Fixed OHTTP responses not being written to the output.
 
-[unreleased]: https://github.com/ameshkov/gocurl/compare/v1.5.0...HEAD
+[See changes][1.5.1changes].
+
+[1.5.1changes]: https://github.com/ameshkov/gocurl/compare/v1.5.0...v1.5.1
+
+[1.5.1]: https://github.com/ameshkov/gocurl/releases/tag/v1.5.0
 
 ## [1.5.0] - 2025-10-13
 
