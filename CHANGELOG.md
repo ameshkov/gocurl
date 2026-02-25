@@ -15,6 +15,7 @@ adheres to [Semantic Versioning][semver].
 
 - Fixed using `--http3` together with `--connect-to`.
 - Fixed unexpected panic when the server stops responding unexpectedly.
+- Fixed OHTTP responses not being written to the output.
 
 [unreleased]: https://github.com/ameshkov/gocurl/compare/v1.5.0...HEAD
 

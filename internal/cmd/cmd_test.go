@@ -432,12 +432,12 @@ func TestRunOHTTP(t *testing.T) {
 	err = cmd.Run(cfg, out)
 	require.NoError(t, err)
 
-	// Verify the output
+	// Verify the output contains the actual response body
 	data := dataBuffer.String()
 
-	// httpbin /get returns JSON with the request details
-	// The response should contain JSON content
-	assert.Contains(t, data, "application/json")
+	// httpbin /get returns JSON with the request details including the URL
+	// This verifies that the response body is actually written to output
+	assert.Contains(t, data, "httpbin.agrd.workers.dev/get")
 }
 
 // TestOHTTPInvalidOptions tests that invalid OHTTP option combinations are rejected.
@@ -567,9 +567,9 @@ func TestRunOHTTPWithProxy(t *testing.T) {
 	// Verify the request went through the proxy
 	assert.True(t, *proxyReceived, "OHTTP request should have gone through the proxy")
 
-	// Verify the output contains JSON content (OHTTP response)
+	// Verify the output contains the actual response body
 	data := dataBuffer.String()
-	assert.Contains(t, data, "application/json")
+	assert.Contains(t, data, "httpbin.agrd.workers.dev/get")
 }
 
 // TestRunWithConnectTo tests the --connect-to flag functionality.

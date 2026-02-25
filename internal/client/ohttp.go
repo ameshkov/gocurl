@@ -116,6 +116,10 @@ func (t *obliviousHTTPTransport) RoundTrip(r *http.Request) (resp *http.Response
 		return nil, fmt.Errorf("failed to parse decrypted response: %w", err)
 	}
 
+	// bhttp does not set the status and proto fields, so we do it here.
+	resp.Status = fmt.Sprintf("%d", resp.StatusCode)
+	resp.Proto = "OHTTP/1.0"
+
 	return resp, nil
 }
 

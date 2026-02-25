@@ -81,11 +81,20 @@ func Run(cfg *config.Config, out *output.Output) error {
 		_ = body.Close()
 	}(resp.Body)
 
-	// Response body is only written when we're sure that it is there.
+	// Response body is only written when we're sure that it is there and can
+	// be fully read.
 	var responseBody io.Reader
 	if resp.ProtoMajor >= 2 ||
+		// Content length guarantees that the response can be fully read.
 		resp.ContentLength > 0 ||
+		// Transfer-Encoding also guarantees that it's clear when body is
+		// finished.
 		len(resp.TransferEncoding) > 0 ||
+		// OHTTP responses may not have any headers apart from content-type,
+		// but they contain the full body right away.
+		cfg.OHTTPGatewayURL != nil ||
+		// When Connection: close we must read the body until the connection is
+		// closed.
 		resp.Header.Get("Connection") == "close" {
 		responseBody = resp.Body
 	}
