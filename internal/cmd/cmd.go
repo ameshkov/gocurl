@@ -9,18 +9,18 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/ameshkov/gocurl/internal/appversion"
 	"github.com/ameshkov/gocurl/internal/client"
 	"github.com/ameshkov/gocurl/internal/client/websocket"
 	"github.com/ameshkov/gocurl/internal/config"
 	"github.com/ameshkov/gocurl/internal/output"
-	"github.com/ameshkov/gocurl/internal/version"
 	goFlags "github.com/jessevdk/go-flags"
 )
 
 // Main is the entry point for the command-line tool.
 func Main() {
 	if len(os.Args) == 2 && (os.Args[1] == "--version" || os.Args[1] == "-v") {
-		fmt.Printf("gocurl version: %s\n", version.Version())
+		fmt.Printf("gocurl version: %s\n", appversion.Version())
 
 		os.Exit(0)
 	}
@@ -53,7 +53,7 @@ func Main() {
 // Run executes the main logic of the gocurl command with the provided config
 // and output. This function is extracted to make it testable.
 func Run(cfg *config.Config, out *output.Output) error {
-	out.Debug("Starting gocurl %s with arguments:\n%s", version.Version(), cfg.RawOptions)
+	out.Debug("Starting gocurl %s with arguments:\n%s", appversion.Version(), cfg.RawOptions)
 
 	transport, err := client.NewTransport(cfg, out)
 	if err != nil {

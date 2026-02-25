@@ -265,13 +265,12 @@ func TestRunStatusCodes(t *testing.T) {
 	}
 
 	for _, tc := range testCases {
-		statusStr := string(
-			rune(tc.statusCode/100+'0'),
-		) + string(
-			rune((tc.statusCode%100)/10+'0'),
-		) + string(
-			rune(tc.statusCode%10+'0'),
-		)
+		//nolint:gosec // G115: statusCode is always 100-599, no overflow possible
+		statusStr := string([]byte{
+			byte(tc.statusCode/100 + '0'),
+			byte((tc.statusCode%100)/10 + '0'),
+			byte(tc.statusCode%10 + '0'),
+		})
 		t.Run("status_"+statusStr, func(t *testing.T) {
 			// Create httpbin test server
 			handler := httpbin.New()
@@ -723,6 +722,7 @@ func createTestProxy() (*httptest.Server, *bool) {
 		targetAddr := r.Host
 
 		// Connect to the target server
+		//nolint:gosec // G704: This is test code, targetAddr comes from test setup
 		targetConn, err := net.Dial("tcp", targetAddr)
 		if err != nil {
 			http.Error(w, fmt.Sprintf("Failed to connect to target: %v", err), http.StatusBadGateway)
@@ -781,6 +781,7 @@ func createTestHTTP3Server(t *testing.T) (server *http3.Server, addr string) {
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
+		//nolint:gosec // G705: This is test code, not exposed to real users
 		_, _ = w.Write([]byte(`{"message": "HTTP/3 test response", "url": "` + r.URL.String() + `"}`))
 	})
 

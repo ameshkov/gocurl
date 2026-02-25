@@ -2,6 +2,7 @@ package client
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"net"
@@ -57,7 +58,12 @@ func (t *obliviousHTTPTransport) RoundTrip(r *http.Request) (resp *http.Response
 	t.out.Debug("Encrypted request size: %d bytes", len(encapsulatedReqBytes))
 
 	// Create a new HTTP POST request to the gateway with the encrypted payload.
-	gatewayReq, err := http.NewRequest(http.MethodPost, t.gatewayURL.String(), bytes.NewReader(encapsulatedReqBytes))
+	gatewayReq, err := http.NewRequestWithContext(
+		context.Background(),
+		http.MethodPost,
+		t.gatewayURL.String(),
+		bytes.NewReader(encapsulatedReqBytes),
+	)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create gateway request: %w", err)
 	}

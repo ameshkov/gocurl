@@ -6,9 +6,9 @@ import (
 	"io"
 	"net/http"
 
+	"github.com/ameshkov/gocurl/internal/appversion"
 	"github.com/ameshkov/gocurl/internal/client/websocket"
 	"github.com/ameshkov/gocurl/internal/config"
-	"github.com/ameshkov/gocurl/internal/version"
 )
 
 // NewRequest creates a new *http.Request based on *cmd.Options.
@@ -36,7 +36,7 @@ func NewRequest(cfg *config.Config) (req *http.Request, err error) {
 
 	// Only set default User-Agent if it was not set by the user.
 	if req.Header.Get("User-Agent") == "" {
-		req.Header.Set("User-Agent", fmt.Sprintf("gocurl/%s", version.Version()))
+		req.Header.Set("User-Agent", fmt.Sprintf("gocurl/%s", appversion.Version()))
 	}
 
 	if ur := websocket.UpgradeWebSocket(req); ur != nil {

@@ -1,5 +1,5 @@
-// Package version exports some getters for the project's version values.
-package version
+// Package appversion exports some getters for the project's version values.
+package appversion
 
 // Versions
 

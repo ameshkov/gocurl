@@ -3,7 +3,7 @@ BASE_BUILDDIR=build
 BUILDNAME=$(GOOS)-$(GOARCH)
 BUILDDIR=$(BASE_BUILDDIR)/$(BUILDNAME)
 VERSION?=v0.0-dev
-VERSIONPKG=github.com/ameshkov/gocurl/internal/version
+VERSIONPKG=github.com/ameshkov/gocurl/internal/appversion
 
 ifeq ($(GOOS),windows)
   ext=.exe
