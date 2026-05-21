@@ -31,8 +31,8 @@ func NewRequest(cfg *config.Config) (req *http.Request, err error) {
 		return nil, err
 	}
 
-	addBodyHeaders(req, cfg)
 	addHeaders(req, cfg)
+	addBodyHeaders(req, cfg)
 
 	// Only set default User-Agent if it was not set by the user.
 	if req.Header.Get("User-Agent") == "" {
@@ -60,8 +60,8 @@ func createBody(cfg *config.Config) (body io.Reader, err error) {
 // command-line arguments. For instance, -d/--data requires adding the
 // Content-Type: application/x-www-form-urlencoded header.
 func addBodyHeaders(req *http.Request, cfg *config.Config) {
-	if cfg.Data != "" && !websocket.IsWebSocket(cfg.RequestURL) {
-		req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	if cfg.Data != "" && !websocket.IsWebSocket(cfg.RequestURL) && req.Header.Get("Content-Type") == "" {
+		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	}
 }
 
