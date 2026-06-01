@@ -3,11 +3,12 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/ameshkov/gocurl)](https://goreportcard.com/report/ameshkov/gocurl)
 [![Latest release](https://img.shields.io/github/release/ameshkov/gocurl/all.svg)](https://github.com/ameshkov/gocurl/releases)
 
-Simplified version of [`curl`](https://curl.se/) written in Go.
+[`curl`](https://curl.se/) compatible tool written in Go that focuses on
+features curl does not provide.
 
-1. Supports a limited subset of curl options.
-2. Supports some flags that curl does
-   not. [Read more about the new stuff](#newstuff).
+1. Supports a subset of curl options needed for its use cases.
+2. Adds flags that curl does not support.
+   [Read more about the new stuff](#newstuff).
 
 - [Why in the world you need another curl?](#why)
 - [How to install gocurl?](#install)
