@@ -81,3 +81,9 @@ no exported API or second module.
 - When bumping the Go version, update it in `go.mod` first (source of truth),
   then the `golang:...` image tag in `Dockerfile` and the version mention in the
   intro of this file. CI workflows use `go-version: stable` and need no edit.
+- Add new guidelines to this "Guidelines" section automatically whenever you are
+  asked to add a guideline, or infer from the conversation that a correction
+  deserves to be codified as one. Keep each guideline concise and actionable.
+- Whenever a task is user-facing or otherwise important, add a brief description
+  of it to the `[Unreleased]` block of `CHANGELOG.md`, following the Keep a
+  Changelog format (e.g. under `### Added` / `### Changed` / `### Fixed`).
