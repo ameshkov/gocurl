@@ -1,0 +1,20 @@
+#!/bin/sh
+
+# Block commits with temporary todo markers in staged content.
+temp_todos="$(
+	git grep --cached -n -E 'FIXME|TODO.*!!' -- \
+		':!./.githooks/pre-commit' \
+		':!./README.md' \
+		|| :
+)"
+
+if [ -n "$temp_todos" ]; then
+	printf 'ERROR: temporary todos found in staged content:\n\n%s\n\n' \
+		"$temp_todos"
+	printf 'Please remove them before committing.\n'
+	exit 1
+fi
+
+# Run the full quality gate: linters and tests.
+echo "Running checks..."
+make check

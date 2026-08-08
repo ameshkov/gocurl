@@ -20,6 +20,7 @@ features curl does not provide.
     - [Experimental flags](#exp)
         - [Post-quantum cryptography](#pq)
     - [WebSocket support](#websocket)
+- [Development](#development)
 - [All command-line arguments](#allcmdarguments)
 
 <a id="why"></a>
@@ -333,6 +334,45 @@ gocurl --experiment pq https://pq.cloudflareresearch.com/
 ```
 
 [postquantum]: https://blog.cloudflare.com/post-quantum-for-all/
+
+<a id="development"></a>
+
+## Development
+
+To set up this repository for development, clone it and run:
+
+```shell
+make init
+```
+
+`make init` installs a git **pre-commit** hook to
+`.git/hooks/pre-commit`. On every commit the hook:
+
+1. Checks the staged content for temporary todo markers (`FIXME` and `TODO!!`)
+   and blocks the commit if any are found. Note that documentation files (like
+   `README.md`) are exempt from this check, since they may legitimately
+   mention those markers.
+2. Runs `make check`, the same quality gate as CI, which runs linters and
+   tests.
+
+The hook is stored in [`.githooks/pre-commit`](./.githooks/pre-commit) so you
+can review exactly what it does. Re-run `make init` to re-install it after
+pulling changes.
+
+Requirements:
+
+- [Go](https://go.dev/) (see `go.mod` for the required version).
+- [golangci-lint](https://golangci-lint.run/).
+- [markdownlint-cli](https://github.com/igorshubovych/markdownlint-cli) (run
+  via `npx`, needs Node.js).
+- `make` and `git`.
+
+Useful commands:
+
+- `make lint` — run `markdownlint-cli` and `golangci-lint`.
+- `make test` — run the test suite.
+- `make check` — run `make lint` and `make test` in sequence.
+- `make build` — build the `gocurl` binary.
 
 <a id="allcmdarguments"></a>
 

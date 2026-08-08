@@ -11,6 +11,20 @@ adheres to [Semantic Versioning][semver].
 
 ## [Unreleased]
 
+### Added
+
+- Added `make init` that installs a git pre-commit hook checking for temporary
+  TODOs and running linters and tests.
+
+### Changed
+
+- Updated dependencies, now using newer versions of `quic-go` (v0.61.0),
+  `dnsproxy` (v0.83.2), `golibs` (v0.35.15), and other dependencies.  The Go
+  version required by the module is now 1.26.5.
+- Adapted the code to the newer `quic-go` API: `http3.RoundTripper` is now
+  `http3.Transport`, and `DialQUIC` returns `*quic.Conn` instead of
+  `quic.EarlyConnection`.
+
 [unreleased]: https://github.com/ameshkov/gocurl/compare/v1.5.2...HEAD
 
 ## [1.5.2] - 2026-05-22

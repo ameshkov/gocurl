@@ -13,7 +13,7 @@ else
   archiveCmd=tar czpvf $(NAME)-$(BUILDNAME)-$(VERSION).tar.gz $(BUILDNAME)
 endif
 
-.PHONY: default
+.PHONY: default check init
 default: build
 
 build: clean
@@ -32,6 +32,18 @@ lint:
 
 test:
 	go test -race -v -bench=. ./...
+
+# check runs linters and tests, it mirrors the CI quality gate.
+check: lint test
+
+# init installs the git pre-commit hook, see .githooks/pre-commit.
+init:
+	@ echo "Installing the gocurl pre-commit hook..."
+	@ mkdir -p .git/hooks
+	@ cp .githooks/pre-commit .git/hooks/pre-commit
+	@ chmod +x .git/hooks/pre-commit
+	@ echo "Done. The pre-commit hook is installed at .git/hooks/pre-commit."
+	@ echo "It runs on every commit: checks for temporary TODOs, linters, tests."
 
 clean:
 	go clean
