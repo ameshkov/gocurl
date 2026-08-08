@@ -5,6 +5,7 @@ temp_todos="$(
 	git grep --cached -n -E 'FIXME|TODO.*!!' -- \
 		':!./.githooks/pre-commit' \
 		':!./README.md' \
+		':!./AGENTS.md' \
 		|| :
 )"
 
