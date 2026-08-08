@@ -11,6 +11,10 @@ adheres to [Semantic Versioning][semver].
 
 ## [Unreleased]
 
+[unreleased]: https://github.com/ameshkov/gocurl/compare/v1.6.0...HEAD
+
+## [1.6.0] - 2026-08-08
+
 ### Added
 
 - Added `make init` that installs a git pre-commit hook checking for temporary
@@ -25,7 +29,11 @@ adheres to [Semantic Versioning][semver].
   `http3.Transport`, and `DialQUIC` returns `*quic.Conn` instead of
   `quic.EarlyConnection`.
 
-[unreleased]: https://github.com/ameshkov/gocurl/compare/v1.5.2...HEAD
+[See changes][1.6.0changes].
+
+[1.6.0changes]: https://github.com/ameshkov/gocurl/compare/v1.5.2...v1.6.0
+
+[1.6.0]: https://github.com/ameshkov/gocurl/releases/tag/v1.6.0
 
 ## [1.5.2] - 2026-05-22
 
