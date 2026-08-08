@@ -102,7 +102,7 @@ func createHTTPTransport(
 
 // createH3Transport creates an http.RoundTripper to be used in HTTP/3 client.
 func createH3Transport(d *clientDialer) (rt http.RoundTripper, err error) {
-	return &http3.RoundTripper{
+	return &http3.Transport{
 		DisableCompression: true,
 		Dial:               d.DialQUIC,
 	}, nil

@@ -88,13 +88,13 @@ func (d *clientDialer) DialContext(_ context.Context, network, addr string) (c n
 }
 
 // DialQUIC establishes a new QUIC connection and is supposed to be used by
-// http3.RoundTripper.
+// http3.Transport.
 func (d *clientDialer) DialQUIC(
 	ctx context.Context,
 	addr string,
 	_ *tls.Config,
 	cfg *quic.Config,
-) (c quic.EarlyConnection, err error) {
+) (c *quic.Conn, err error) {
 	conn, err := d.dial("udp", addr)
 	if err != nil {
 		return nil, err
