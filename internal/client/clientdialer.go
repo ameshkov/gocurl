@@ -4,9 +4,11 @@ import (
 	"context"
 	"crypto/rand"
 	"crypto/tls"
+	"crypto/x509"
 	"fmt"
 	"io"
 	"net"
+	"os"
 	"time"
 
 	"github.com/ameshkov/gocurl/internal/client/cfcrypto"
@@ -221,6 +223,23 @@ func createTLSConfig(hostname string, cfg *config.Config, out *output.Output) (t
 
 	if cfg.Insecure {
 		tlsConfig.InsecureSkipVerify = true
+	}
+
+	// Load CA certificate if specified
+	if cfg.CACert != "" {
+		caCert, err := os.ReadFile(cfg.CACert)
+		if err != nil {
+			out.Error("Failed to read CA certificate: %v", err)
+			return nil
+		}
+
+		caCertPool := x509.NewCertPool()
+		if !caCertPool.AppendCertsFromPEM(caCert) {
+			out.Error("Failed to parse CA certificate")
+			return nil
+		}
+
+		tlsConfig.RootCAs = caCertPool
 	}
 
 	if len(cfg.TLSRandom) == 32 {
